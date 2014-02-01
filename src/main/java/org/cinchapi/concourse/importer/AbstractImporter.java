@@ -24,19 +24,39 @@
 package org.cinchapi.concourse.importer;
 
 import org.cinchapi.concourse.Concourse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Abstract implementation of the {@link Importer} interface. This class
  * provides a handler to {@link Concourse} that is constructed using the
  * credentials in {@code concourse_client.prefs}.
- *
+ * 
  * @author jnelson
  */
-public abstract class AbstractImporter implements Importer {
+abstract class AbstractImporter implements Importer {
 
     /**
      * A handler to the {@link Concourse} where the data will be imported.
      */
-    protected final Concourse concourse = Concourse.connect();
+    protected final Concourse concourse;
+
+    /**
+     * A Logger that is available for the subclass to log helpful messages.
+     */
+    protected Logger log = LoggerFactory.getLogger(getClass());
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     */
+    protected AbstractImporter(String host, int port, String username,
+            String password) {
+        this.concourse = Concourse.connect(host, port, username, password);
+    }
 
 }

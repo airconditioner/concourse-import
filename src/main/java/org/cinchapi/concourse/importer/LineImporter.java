@@ -35,6 +35,7 @@ import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -49,7 +50,20 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-public abstract class LineImporter extends AbstractImporter {
+abstract class LineImporter extends AbstractImporter {
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     */
+    protected LineImporter(String host, int port, String username,
+            String password) {
+        super(host, port, username, password);
+    }
 
     @Override
     public final Collection<ImportResult> importFile(String file) {
@@ -82,12 +96,23 @@ public abstract class LineImporter extends AbstractImporter {
     public Collection<ImportResult> importFile(String file,
             @Nullable String resolveKey) {
         List<ImportResult> results = Lists.newArrayList();
+        String[] keys = null;
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
             while ((line = reader.readLine()) != null) {
-                System.out.println(line); //TODO remove me
-//                results.add(importLineData(parseLine(line), resolveKey));
+                if(keys == null) {
+                    keys = parseHeader(line);
+                    log.info("Processed header: " + line);
+                }
+                else {
+                    ImportResult result = importLineData(parseLine(line, keys),
+                            resolveKey);
+                    results.add(result);
+                    log.info(MessageFormat.format(
+                            "Imported {0} with {1} error(s)", line,
+                            result.getErrorCount()));
+                }
             }
             reader.close();
             return results;
@@ -99,17 +124,25 @@ public abstract class LineImporter extends AbstractImporter {
     }
 
     /**
-     * Parse the data from {@code line} into a multimap from key to value.
+     * Parse the data from {@code line} into a multimap from key (header) to
+     * value.
      * 
      * @param line
+     * @param headers
      * @return the line data
      */
-    public abstract Multimap<String, String> parseLine(String line); // subclass
-                                                                     // should
-                                                                     // define
-                                                                     // its
-                                                                     // own
-                                                                     // delimiter
+    // subclass should define its own delimiter
+    public abstract Multimap<String, String> parseLine(String line,
+            String... headers);
+
+    /**
+     * Parse the header from {@code line} into a set of ordered keys.
+     * 
+     * @param line
+     * @return the keys in the header
+     */
+    // subclass should define its own delimiter
+    public abstract String[] parseHeader(String line);
 
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
