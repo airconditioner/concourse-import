@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.importer;
 
+import java.util.Collection;
+
 /**
  * An {@link Importer} is a service that has the ability to go through a file
  * and import contents into {@link Concourse}.
@@ -36,7 +38,10 @@ public interface Importer {
      * {@link Concourse}.
      * 
      * @param file
+     * @return a collection of {@link ImportResult} objects that describes the
+     *         records created/affected from the import and whether any errors
+     *         occurred
      */
-    public void importFile(String file);
+    public Collection<ImportResult> importFile(String file);
 
 }

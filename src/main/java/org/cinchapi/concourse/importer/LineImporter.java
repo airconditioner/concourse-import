@@ -23,8 +23,12 @@
  */
 package org.cinchapi.concourse.importer;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
+import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
@@ -33,6 +37,8 @@ import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
 
 import com.google.common.base.Strings;
+import com.google.common.base.Throwables;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
 
@@ -46,11 +52,11 @@ import com.google.common.collect.Sets;
 public abstract class LineImporter extends AbstractImporter {
 
     @Override
-    public final void importFile(String file) {
-        importFile(file, null); // for the default cause,
-                                // assume that we want to
-                                // import each line into a
-                                // new record
+    public final Collection<ImportResult> importFile(String file) {
+        return importFile(file, null); // for the default cause,
+                                       // assume that we want to
+                                       // import each line into a
+                                       // new record
     }
 
     /**
@@ -69,61 +75,41 @@ public abstract class LineImporter extends AbstractImporter {
      * 
      * @param file
      * @param resolveKey
+     * @return a collection of {@link ImportResult} objects that describes the
+     *         records created/affected from the import and whether any errors
+     *         occurred.
      */
-    public abstract void importFile(String file, @Nullable String resolveKey); // subclass
-                                                                               // should
-                                                                               // define
-                                                                               // its
-                                                                               // own
-                                                                               // delimiter
-
-    /**
-     * Import a single line that has been transformed into {@code data}.
-     * <p>
-     * If {@code resolveKey} is specified, it is possible that the {@code data}
-     * will be added to more than one existing record. It is guaranteed that an
-     * attempt will be made to add the data to at least one (possibly) new
-     * record.
-     * </p>
-     * 
-     * @param data
-     * @param resolveKey
-     * @return an {@link ImportResult} object that describes the records
-     *         created/affected from the import and whether any errors occurred.
-     */
-    protected final ImportResult importLine(Multimap<String, String> data,
+    public Collection<ImportResult> importFile(String file,
             @Nullable String resolveKey) {
-        // Attempt to resolve the data into one or more existing records,
-        // otherwise create a new record
-        Collection<String> resolveValues;
-        String resolveValue;
-        Set<Long> records;
-        if(!Strings.isNullOrEmpty(resolveKey)
-                && (resolveValues = data.get(resolveKey)).size() == 1
-                && Strings.isNullOrEmpty((resolveValue = resolveValues
-                        .iterator().next()))) {
-            records = concourse.find(resolveKey, Operator.EQUALS, resolveValue);
-        }
-        else {
-            records = Sets.newHashSet(concourse.create());
-        }
-        // Iterate through the data and add it to Concourse
-        ImportResult result = ImportResult.newImportResult(data, records);
-        for (String key : data.keySet()) {
-            for (String rawValue : data.get(key)) {
-                Object value = convert(rawValue);
-                for (long record : records) {
-                    if(!concourse.add(key, value, record)) {
-                        result.addError(MessageFormat.format(
-                                "Could not import {0} AS {1} IN {2}", key,
-                                value, record));
-                    }
-                }
+        List<ImportResult> results = Lists.newArrayList();
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(file));
+            String line;
+            while ((line = reader.readLine()) != null) {
+                System.out.println(line); //TODO remove me
+//                results.add(importLineData(parseLine(line), resolveKey));
             }
+            reader.close();
+            return results;
         }
-        return result;
+        catch (IOException e) {
+            throw Throwables.propagate(e);
+        }
 
     }
+
+    /**
+     * Parse the data from {@code line} into a multimap from key to value.
+     * 
+     * @param line
+     * @return the line data
+     */
+    public abstract Multimap<String, String> parseLine(String line); // subclass
+                                                                     // should
+                                                                     // define
+                                                                     // its
+                                                                     // own
+                                                                     // delimiter
 
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
@@ -162,5 +148,53 @@ public abstract class LineImporter extends AbstractImporter {
             }
             return value;
         }
+    }
+
+    /**
+     * Import a single line that has been transformed into {@code data}.
+     * <p>
+     * If {@code resolveKey} is specified, it is possible that the {@code data}
+     * will be added to more than one existing record. It is guaranteed that an
+     * attempt will be made to add the data to at least one (possibly) new
+     * record.
+     * </p>
+     * 
+     * @param data
+     * @param resolveKey
+     * @return an {@link ImportResult} object that describes the records
+     *         created/affected from the import and whether any errors occurred.
+     */
+    private ImportResult importLineData(Multimap<String, String> data,
+            @Nullable String resolveKey) {
+        // Attempt to resolve the data into one or more existing records,
+        // otherwise create a new record
+        Collection<String> resolveValues;
+        String resolveValue;
+        Set<Long> records;
+        if(!Strings.isNullOrEmpty(resolveKey)
+                && (resolveValues = data.get(resolveKey)).size() == 1
+                && Strings.isNullOrEmpty((resolveValue = resolveValues
+                        .iterator().next()))) {
+            records = concourse.find(resolveKey, Operator.EQUALS, resolveValue);
+        }
+        else {
+            records = Sets.newHashSet(concourse.create());
+        }
+        // Iterate through the data and add it to Concourse
+        ImportResult result = ImportResult.newImportResult(data, records);
+        for (String key : data.keySet()) {
+            for (String rawValue : data.get(key)) {
+                Object value = convert(rawValue);
+                for (long record : records) {
+                    if(!concourse.add(key, value, record)) {
+                        result.addError(MessageFormat.format(
+                                "Could not import {0} AS {1} IN {2}", key,
+                                value, record));
+                    }
+                }
+            }
+        }
+        return result;
+
     }
 }
