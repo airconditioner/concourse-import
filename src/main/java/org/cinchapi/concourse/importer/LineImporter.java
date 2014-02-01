@@ -35,7 +35,6 @@ import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.thrift.Operator;
-import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
@@ -109,9 +108,10 @@ abstract class LineImporter extends AbstractImporter {
                     ImportResult result = importLineData(parseLine(line, keys),
                             resolveKey);
                     results.add(result);
-                    log.info(MessageFormat.format(
-                            "Imported {0} with {1} error(s)", line,
-                            result.getErrorCount()));
+                    log.info(MessageFormat
+                            .format("Imported {0} into record(s) {1} with {2} error(s)",
+                                    line, result.getRecords(),
+                                    result.getErrorCount()));
                 }
             }
             reader.close();
