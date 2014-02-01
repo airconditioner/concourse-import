@@ -1,0 +1,17 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'maven'
+
+repositories {
+   mavenCentral()
+}
+
+dependencies {
+    compile 'org.cinchapi:concourse:0.3.0+'
+    compile 'com.google.guava:guava:15.0'
+    compile 'com.intellij:annotations:12.0'
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
+}
