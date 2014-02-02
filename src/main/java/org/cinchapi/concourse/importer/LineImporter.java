@@ -49,7 +49,7 @@ import com.google.common.collect.Sets;
  * 
  * @author jnelson
  */
-abstract class LineImporter extends AbstractImporter {
+public abstract class LineImporter extends AbstractImporter {
 
     /**
      * Construct a new instance.

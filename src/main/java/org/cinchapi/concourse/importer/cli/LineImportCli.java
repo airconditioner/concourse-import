@@ -23,26 +23,22 @@
  */
 package org.cinchapi.concourse.importer.cli;
 
-import org.cinchapi.concourse.importer.CsvImporter;
+import org.cinchapi.concourse.cli.Options;
 import org.cinchapi.concourse.importer.LineImporter;
 
+import com.beust.jcommander.Parameter;
+
 /**
- * A CLI that imports CSV files into Concourse.
+ * A CLI that can handle the features of a {@link LineImporter}.
  * 
  * @author jnelson
  */
-public class CsvImportCli extends LineImportCli {
+public abstract class LineImportCli extends AbstractImportCli {
 
     /**
-     * Run the program
-     * 
-     * @param args
+     * The importer that is used to bring the data in each file into Concourse.
      */
-    public static void main(String... args) {
-        CsvImportCli cli = new CsvImportCli(new LineImportOptions(), args);
-        cli.run();
-    }
-
+    private final LineImporter importer;
 
     /**
      * Construct a new instance.
@@ -50,14 +46,34 @@ public class CsvImportCli extends LineImportCli {
      * @param options
      * @param args
      */
-    protected CsvImportCli(LineImportOptions options, String[] args) {
+    protected LineImportCli(LineImportOptions options, String... args) {
         super(options, args);
+        this.importer = importer(); // must call after super constructors so all
+                                    // creds are initialized
     }
-    
+
     @Override
-    protected LineImporter importer() {
-        return CsvImporter.withConnectionInfo(options.host,
-                options.port, options.username, options.password);
+    protected final void doImport(String file) {
+        importer.importFile(file, ((LineImportOptions) options).resolveKey);
+    }
+
+    /**
+     * The subclass should provide the importer that will be used by the CLI.
+     * 
+     * @return the importer
+     */
+    protected abstract LineImporter importer();
+
+    /**
+     * Line specific {@link Options}.
+     * 
+     * @author jnelson
+     */
+    protected static class LineImportOptions extends ImportOptions {
+
+        @Parameter(names = { "-r", "--resolveKey" }, description = "The key to use when resolving data into existing records")
+        public String resolveKey = null;
+
     }
 
 }
