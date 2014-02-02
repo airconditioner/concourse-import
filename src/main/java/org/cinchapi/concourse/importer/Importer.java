@@ -34,8 +34,7 @@ import java.util.Collection;
 public interface Importer {
 
     /**
-     * Import the data contained in {@code file} into a new record in
-     * {@link Concourse}.
+     * Import the data contained in {@code file} into {@link Concourse}.
      * 
      * @param file
      * @return a collection of {@link ImportResult} objects that describes the

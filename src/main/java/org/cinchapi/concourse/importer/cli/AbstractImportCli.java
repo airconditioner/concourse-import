@@ -64,7 +64,7 @@ public abstract class AbstractImportCli extends CommandLineInterface {
     /**
      * Construct a new instance.
      * <p>
-     * The sublcass should call
+     * The subclass should call
      * {@link #AbstractImportCli(ImportOptions, String[])} from this constructor
      * with an instance of of the appropriate subclass of {@link ImportOptions}
      * if necessary.
@@ -77,12 +77,8 @@ public abstract class AbstractImportCli extends CommandLineInterface {
     }
 
     /**
-     * Construct a new instance.
-     * <p>
-     * The subclass should NOT override this constructor. If the subclass
-     * defines a custom {@link ImportOptions} subclass, then it only needs to
-     * pass those to this super constructor from
-     * {@link #AbstractImportCli(String...)}.
+     * Construct a new instance. This constructor is provided in case the
+     * subclass wants to extend {@link ImportOptions}.
      * </p>
      * 
      * @param options
@@ -104,7 +100,7 @@ public abstract class AbstractImportCli extends CommandLineInterface {
     @Override
     protected final void doTask() {
         ExecutorService executor = Executors
-                .newFixedThreadPool(options.numThreads);
+                .newFixedThreadPool(((ImportOptions) options).numThreads);
         String data = ((ImportOptions) options).data;
         List<String> files = scan(Paths.get(data));
         Stopwatch watch = Stopwatch.createStarted();
@@ -188,6 +184,9 @@ public abstract class AbstractImportCli extends CommandLineInterface {
 
         @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import", required = true)
         public String data;
+
+        @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import. The default value is (1)")
+        public int numThreads = 1;
 
     }
 

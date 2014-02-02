@@ -358,7 +358,6 @@ public abstract class LineImporter extends AbstractImporter {
                                         key, value, record));
                             }
                         }
-
                     }
                 }
             }
@@ -368,9 +367,8 @@ public abstract class LineImporter extends AbstractImporter {
         }
         else {
             // TODO add some max number of retries before giving up?
-            log.warn(
-                    "Error trying to commit import of {0}. Attempting to retry the import...",
-                    data);
+            log.warn("Error trying to commit import of {0}. "
+                    + "Attempting to retry the import...", data);
             return importLineData(data, resolveKey);
         }
     }

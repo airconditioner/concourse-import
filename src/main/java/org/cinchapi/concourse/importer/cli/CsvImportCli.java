@@ -34,16 +34,6 @@ import org.cinchapi.concourse.importer.LineImporter;
 public class CsvImportCli extends LineImportCli {
 
     /**
-     * Run the program
-     * 
-     * @param args
-     */
-    public static void main(String... args) {
-        CsvImportCli cli = new CsvImportCli(args);
-        cli.run();
-    }
-
-    /**
      * Construct a new instance.
      * @param args
      */

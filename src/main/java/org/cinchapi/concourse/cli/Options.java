@@ -36,7 +36,7 @@ import com.beust.jcommander.Parameter;
  * 
  * @author jnelson
  */
-public abstract class Options {
+public class Options {
 
     @Parameter(names = { "-h", "--help" }, help = true, hidden = true)
     public boolean help;
@@ -55,8 +55,5 @@ public abstract class Options {
 
     @Parameter(names = { "-p", "--prefs" }, description = "Path to the concourse_client.prefs file")
     public String prefs;
-
-    @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import. The default value is (1)")
-    public int numThreads = 1;
 
 }

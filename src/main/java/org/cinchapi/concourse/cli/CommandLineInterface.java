@@ -24,6 +24,7 @@
 package org.cinchapi.concourse.cli;
 
 import java.io.IOException;
+
 import jline.console.ConsoleReader;
 
 import com.beust.jcommander.JCommander;
@@ -57,9 +58,28 @@ public abstract class CommandLineInterface {
     protected ConsoleReader console;
 
     /**
+     * Construct a new instance.
+     * <p>
+     * The subclass should call {@link #CommandLineInterface(Options, String[])}
+     * from this constructor with an instance of of the appropriate subclass of
+     * {@link Options} if necessary.
+     * </p>
+     * 
+     * @param args
+     */
+    public CommandLineInterface(String... args) {
+        this(new Options(), args);
+    }
+
+    /**
      * Construct a new instance that is seeded with an object containing options
      * metadata. The {@code options} will be parsed by {@link JCommander} to
      * configure them appropriately.
+     * <p>
+     * The subclass should NOT override this constructor. If the subclass
+     * defines a custom {@link Options} class, then it only needs to pass those
+     * to this super constructor from {@link #CommandLineInterface(String...)}.
+     * </p>
      * 
      * @param options
      * @param args - these usually come from the main method
@@ -91,16 +111,17 @@ public abstract class CommandLineInterface {
     /**
      * Run the CLI. This method should only be called from the main method.
      */
-    public final void run() {
+    public final int run() {
         try {
             if(options.help) {
                 parser.usage();
                 System.exit(1);
             }
             doTask();
+            return 0;
         }
         catch (Exception e) {
-            die(e.getMessage());
+            return die(e.getMessage());
         }
     }
 
@@ -109,9 +130,9 @@ public abstract class CommandLineInterface {
      * 
      * @param message
      */
-    protected void die(String message) {
+    protected int die(String message) {
         System.err.println("ERROR: " + message);
-        System.exit(2);
+        return 2;
     }
 
     /**
