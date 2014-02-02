@@ -43,11 +43,10 @@ public abstract class LineImportCli extends AbstractImportCli {
     /**
      * Construct a new instance.
      * 
-     * @param options
      * @param args
      */
-    protected LineImportCli(LineImportOptions options, String... args) {
-        super(options, args);
+    public LineImportCli(String... args) {
+        super(new LineImportOptions(), args);
         this.importer = importer(); // must call after super constructors so all
                                     // creds are initialized
     }

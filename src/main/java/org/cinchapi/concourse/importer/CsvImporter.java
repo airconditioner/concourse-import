@@ -95,20 +95,6 @@ public class CsvImporter extends LineImporter {
     }
 
     /**
-     * This method is provided so the subclass can transform a {@code value}
-     * under {@code header} into something else. This is allows cases where it
-     * is necessary to normalize data or convert it to a more compact
-     * representation (i.e. string description of enums to ints, etc)
-     * 
-     * @param header
-     * @param line
-     * @return the transformed value
-     */
-    protected String transformValue(String header, String value) {
-        return value;
-    }
-
-    /**
      * Preprocess {@code line} before parsing it.
      * 
      * @param line

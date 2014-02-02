@@ -39,25 +39,22 @@ public class CsvImportCli extends LineImportCli {
      * @param args
      */
     public static void main(String... args) {
-        CsvImportCli cli = new CsvImportCli(new LineImportOptions(), args);
+        CsvImportCli cli = new CsvImportCli(args);
         cli.run();
     }
 
-
     /**
      * Construct a new instance.
-     * 
-     * @param options
      * @param args
      */
-    protected CsvImportCli(LineImportOptions options, String[] args) {
-        super(options, args);
+    public CsvImportCli(String... args) {
+        super(args);
     }
-    
+
     @Override
     protected LineImporter importer() {
-        return CsvImporter.withConnectionInfo(options.host,
-                options.port, options.username, options.password);
+        return CsvImporter.withConnectionInfo(options.host, options.port,
+                options.username, options.password);
     }
 
 }

@@ -63,6 +63,27 @@ public abstract class AbstractImportCli extends CommandLineInterface {
 
     /**
      * Construct a new instance.
+     * <p>
+     * The sublcass should call
+     * {@link #AbstractImportCli(ImportOptions, String[])} from this constructor
+     * with an instance of of the appropriate subclass of {@link ImportOptions}
+     * if necessary.
+     * </p>
+     * 
+     * @param args
+     */
+    public AbstractImportCli(String... args) {
+        this(new ImportOptions(), args);
+    }
+
+    /**
+     * Construct a new instance.
+     * <p>
+     * The subclass should NOT override this constructor. If the subclass
+     * defines a custom {@link ImportOptions} subclass, then it only needs to
+     * pass those to this super constructor from
+     * {@link #AbstractImportCli(String...)}.
+     * </p>
      * 
      * @param options
      * @param args
