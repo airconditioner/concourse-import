@@ -51,6 +51,11 @@ public class CsvImporter extends LineImporter {
     }
 
     /**
+     * The delimiter that is used to separate fields in the CSV file.
+     */
+    private static final String DELIMITER = ",";
+
+    /**
      * Construct a new instance.
      * 
      * @param host
@@ -63,24 +68,44 @@ public class CsvImporter extends LineImporter {
         super(host, port, username, password);
     }
 
-    /**
-     * The delimiter that is used to separate fields in the CSV file.
-     */
-    private static final String DELIMITER = ",";
-
     @Override
     public String[] parseHeader(String line) {
-        return prepareLine(line).split(DELIMITER);
+        return prepareLine(line).split(delimiter());
     }
 
     @Override
-    public Multimap<String, String> parseLine(String line, String... headers) {
+    public final Multimap<String, String> parseLine(String line,
+            String... headers) {
         Multimap<String, String> data = LinkedHashMultimap.create();
-        String[] toks = prepareLine(line).split(DELIMITER);
+        String[] toks = prepareLine(line).split(delimiter());
         for (int i = 0; i < toks.length; i++) {
-            data.put(headers[i], toks[i]);
+            data.put(headers[i], transformValue(headers[i], toks[i]));
         }
         return data;
+    }
+
+    /**
+     * This method is provided so the subclass can specify the csv delimiter. By
+     * default, {@link #DELIMITER} is used.
+     * 
+     * @return the delimiter used by this importer
+     */
+    protected String delimiter() {
+        return DELIMITER;
+    }
+
+    /**
+     * This method is provided so the subclass can transform a {@code value}
+     * under {@code header} into something else. This is allows cases where it
+     * is necessary to normalize data or convert it to a more compact
+     * representation (i.e. string description of enums to ints, etc)
+     * 
+     * @param header
+     * @param line
+     * @return the transformed value
+     */
+    protected String transformValue(String header, String value) {
+        return value;
     }
 
     /**

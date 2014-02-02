@@ -95,7 +95,7 @@ abstract class LineImporter extends AbstractImporter {
     public Collection<ImportResult> importFile(String file,
             @Nullable String resolveKey) {
         List<ImportResult> results = Lists.newArrayList();
-        String[] keys = null;
+        String[] keys = header();
         try {
             BufferedReader reader = new BufferedReader(new FileReader(file));
             String line;
@@ -132,17 +132,29 @@ abstract class LineImporter extends AbstractImporter {
      * @return the line data
      */
     // subclass should define its own delimiter
-    public abstract Multimap<String, String> parseLine(String line,
+    protected abstract Multimap<String, String> parseLine(String line,
             String... headers);
 
     /**
-     * Parse the header from {@code line} into a set of ordered keys.
+     * Parse the header from {@code line} into a set of ordered keys. The
+     * subclass can ignore this method and return an empty array or {@code null}
+     * if it has overridden {@link #header()}.
      * 
      * @param line
      * @return the keys in the header
      */
     // subclass should define its own delimiter
-    public abstract String[] parseHeader(String line);
+    protected abstract String[] parseHeader(String line);
+
+    /**
+     * This method is provided so the subclass can provide an ordered array of
+     * headers if they are not provided in the file as the first line.
+     * 
+     * @return the header information
+     */
+    protected String[] header() {
+        return null;
+    }
 
     /**
      * Analyze {@code value} and convert it to the appropriate Java primitive or
@@ -217,12 +229,16 @@ abstract class LineImporter extends AbstractImporter {
         ImportResult result = ImportResult.newImportResult(data, records);
         for (String key : data.keySet()) {
             for (String rawValue : data.get(key)) {
-                Object value = convert(rawValue);
-                for (long record : records) {
-                    if(!concourse.add(key, value, record)) {
-                        result.addError(MessageFormat.format(
-                                "Could not import {0} AS {1} IN {2}", key,
-                                value, record));
+                if(!Strings.isNullOrEmpty(rawValue)) { // do not waste time
+                                                       // sending empty values
+                                                       // over the wire
+                    Object value = convert(rawValue);
+                    for (long record : records) {
+                        if(!concourse.add(key, value, record)) {
+                            result.addError(MessageFormat.format(
+                                    "Could not import {0} AS {1} IN {2}", key,
+                                    value, record));
+                        }
                     }
                 }
             }

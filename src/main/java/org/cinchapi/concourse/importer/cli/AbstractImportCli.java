@@ -30,6 +30,8 @@ import java.nio.file.Paths;
 import java.text.MessageFormat;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.cli.CommandLineInterface;
@@ -80,16 +82,28 @@ public abstract class AbstractImportCli extends CommandLineInterface {
 
     @Override
     protected final void doTask() {
+        ExecutorService executor = Executors
+                .newFixedThreadPool(options.numThreads);
         String data = ((ImportOptions) options).data;
         List<String> files = scan(Paths.get(data));
         Stopwatch watch = Stopwatch.createStarted();
-        for (String file : files) {
-            // TODO multithread imports?
-            doImport(file);
+        for (final String file : files) {
+            executor.execute(new Runnable() {
+
+                @Override
+                public void run() {
+                    doImport(file);
+                }
+
+            });
+        }
+        executor.shutdown();
+        while (!executor.isTerminated()) {
+            continue; // block until all tasks are completed
         }
         watch.stop();
-        TimeUnit unit = TimeUnit.SECONDS;
-        System.out.println(MessageFormat.format("Finished import in {0}, {1}",
+        TimeUnit unit = TimeUnit.MILLISECONDS;
+        System.out.println(MessageFormat.format("Finished import in {0} {1}",
                 watch.elapsed(unit), unit));
     }
 
