@@ -24,7 +24,6 @@
 package org.cinchapi.concourse.importer.cli;
 
 import org.cinchapi.concourse.importer.CsvImporter;
-import org.cinchapi.concourse.importer.LineImporter;
 
 /**
  * A CLI that imports CSV files into Concourse.
@@ -42,7 +41,7 @@ public class CsvImportCli extends LineImportCli {
     }
 
     @Override
-    protected LineImporter importer() {
+    protected CsvImporter importer() {
         return CsvImporter.withConnectionInfo(options.host, options.port,
                 options.username, options.password);
     }
