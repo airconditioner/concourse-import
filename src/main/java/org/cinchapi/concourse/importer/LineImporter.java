@@ -29,19 +29,13 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
 
-import org.cinchapi.concourse.Link;
-import org.cinchapi.concourse.thrift.Operator;
 
-import com.google.common.base.Strings;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Sets;
 
 /**
  * A {@link LineImporter} is one that handles files where each line represents a
@@ -51,22 +45,6 @@ import com.google.common.collect.Sets;
  * @author jnelson
  */
 public abstract class LineImporter extends AbstractImporter {
-
-    /**
-     * The component of a resolvable link symbol that comes before the
-     * resolvable key specification in the raw data.
-     */
-    protected static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
-                                                                             // for
-                                                                             // testing
-
-    /**
-     * The component of a resolvable link symbol that comes after the
-     * resolvable key specification in the raw data.
-     */
-    protected static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
-                                                                            // for
-                                                                            // testing
 
     /**
      * Construct a new instance.
@@ -122,7 +100,7 @@ public abstract class LineImporter extends AbstractImporter {
                     log.info("Processed header: " + line);
                 }
                 else {
-                    ImportResult result = importLineData(parseLine(line, keys),
+                    ImportResult result = doImport(parseLine(line, keys),
                             resolveKey);
                     results.add(result);
                     log.info(MessageFormat
@@ -138,78 +116,6 @@ public abstract class LineImporter extends AbstractImporter {
             throw Throwables.propagate(e);
         }
 
-    }
-
-    /**
-     * Analyze {@code value} and convert it to the appropriate Java primitive or
-     * Object
-     * 
-     * @param value
-     * @return the converted value
-     */
-    protected final Object convert(String value) { // visible for testing
-        if(value.matches("\"([^\"]+)\"|'([^']+)'")) { // keep value as
-                                                      // string since its
-                                                      // between single or
-                                                      // double quotes
-            return value.substring(1, value.length() - 1);
-        }
-        else if(value.matches(MessageFormat.format(
-                "{0}[A-Za-z0-9]{1}[A-Za-z0-9]+",
-                RAW_RESOLVABLE_LINK_SYMBOL_PREPEND,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND))) {
-            /*
-             * I want to specify a link in the raw data in terms of a
-             * value in the raw data instead of the Concourse primary key
-             * 
-             * Example
-             * account_number | customer | account_type
-             * 12345 | 678 | SAVINGS
-             * 
-             * Lets assume in this scenario, I've imported customer data. Now, I
-             * want to link the "customer" key in each account record that is
-             * created to the previously created customer records. By specifying
-             * the raw customer value as @<customer_id>@678@<customer_id>@ I am
-             * saying that the system should find all the records where
-             * customer_id is equal to 678 and link the "customer" key in the
-             * account record that is being created to all those records.
-             * 
-             * FURTHERMORE, the transformation of 678 to
-             * <code> @<customer_id>@678@<customer_id>@</code> can be done in
-             * the transformValue() method
-             */
-            String[] parts = value.split(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, 2)[0]
-                    .split(RAW_RESOLVABLE_LINK_SYMBOL_APPEND, 2);
-            String key = parts[0];
-            Object theValue = convert(parts[1]);
-            return new ResolvableLink(key, theValue);
-        }
-        else if(value.matches("@[0-9]+@")) {
-            return Link.to(Long.parseLong(value.replace("@", "")));
-        }
-        else if(value.equalsIgnoreCase("true")) {
-            return true;
-        }
-        else if(value.equalsIgnoreCase("false")) {
-            return false;
-        }
-        else {
-            Class<?>[] classes = { Integer.class, Long.class, Float.class,
-                    Double.class };
-            for (Class<?> clazz : classes) {
-                try {
-                    return clazz.getMethod("valueOf", String.class).invoke(
-                            null, value);
-                }
-                catch (Exception e) {
-                    if(e instanceof NumberFormatException
-                            || e.getCause() instanceof NumberFormatException) {
-                        continue;
-                    }
-                }
-            }
-            return value;
-        }
     }
 
     /**
@@ -278,124 +184,5 @@ public abstract class LineImporter extends AbstractImporter {
      */
     protected String transformValue(String header, String value) {
         return value;
-    }
-
-    /**
-     * Transform the {@code rawValue} into a resolvable link specification using
-     * the {@code resolvableKey}.
-     * 
-     * @param resolvableKey
-     * @param rawValue
-     * @return the transformed value.
-     */
-    protected final String transformValueToResolvableLink(String resolvableKey,
-            String rawValue) {
-        return MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, resolvableKey,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), rawValue);
-    }
-
-    /**
-     * Import a single line that has been transformed into {@code data}.
-     * <p>
-     * If {@code resolveKey} is specified, it is possible that the {@code data}
-     * will be added to more than one existing record. It is guaranteed that an
-     * attempt will be made to add the data to at least one (possibly) new
-     * record.
-     * </p>
-     * 
-     * @param data
-     * @param resolveKey
-     * @return an {@link ImportResult} object that describes the records
-     *         created/affected from the import and whether any errors occurred.
-     */
-    // This method must be synchronized so that multiple import threads using
-    // the same client do not try to start competing transactions
-    private synchronized ImportResult importLineData(
-            Multimap<String, String> data, @Nullable String resolveKey) {
-        // Attempt to resolve the data into one or more existing records,
-        // otherwise create a new record
-        Collection<String> resolveValues;
-        String resolveValue;
-        Set<Long> records;
-        if(!Strings.isNullOrEmpty(resolveKey)
-                && (resolveValues = data.get(resolveKey)).size() == 1
-                && Strings.isNullOrEmpty((resolveValue = resolveValues
-                        .iterator().next()))) {
-            records = concourse.find(resolveKey, Operator.EQUALS, resolveValue);
-        }
-        else {
-            records = Sets.newHashSet(concourse.create());
-        }
-        // Iterate through the data and add it to Concourse
-        ImportResult result = ImportResult.newImportResult(data, records);
-        concourse.stage();
-        for (String key : data.keySet()) {
-            for (String rawValue : data.get(key)) {
-                if(!Strings.isNullOrEmpty(rawValue)) { // do not waste time
-                                                       // sending empty values
-                                                       // over the wire
-                    Object convertedValue = convert(rawValue);
-                    List<Object> values = Lists.newArrayList();
-                    if(convertedValue instanceof ResolvableLink) {
-                        // Find all the records that resolve and create a Link
-                        // to those records.
-                        for (long record : concourse.find(
-                                ((ResolvableLink) convertedValue).key,
-                                Operator.EQUALS,
-                                ((ResolvableLink) convertedValue).value)) {
-                            values.add(Link.to(record));
-                        }
-                    }
-                    else {
-                        values.add(convertedValue);
-                    }
-                    for (long record : records) {
-                        for (Object value : values) {
-                            if(!concourse.add(key, value, record)) {
-                                result.addError(MessageFormat.format(
-                                        "Could not import {0} AS {1} IN {2}",
-                                        key, value, record));
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        if(concourse.commit()) {
-            return result;
-        }
-        else {
-            // TODO add some max number of retries before giving up?
-            log.warn("Error trying to commit import of {0}. "
-                    + "Attempting to retry the import...", data);
-            return importLineData(data, resolveKey);
-        }
-    }
-
-    /**
-     * A special class that is used to indicate that the record to which a Link
-     * should point must be resolved by finding all records that have a
-     * specified key equal to a specified value.
-     * 
-     * @author jnelson
-     */
-    @Immutable
-    private final class ResolvableLink {
-
-        private final String key;
-        private final Object value;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param value
-         */
-        private ResolvableLink(String key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-
     }
 }
