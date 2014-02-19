@@ -101,7 +101,8 @@ public class AbstractImporterTest {
         // A value that is wrapped in single (') or double (") quotes must
         // always be converted to a string
         Object object = Random.getObject();
-        String value = MessageFormat.format("{0}{1}{0}", "'", object.toString());
+        String value = MessageFormat
+                .format("{0}{1}{0}", "'", object.toString());
         Assert.assertEquals(AbstractImporter.convert(value), object.toString());
     }
 
@@ -110,7 +111,8 @@ public class AbstractImporterTest {
         // A value that is wrapped in single (') or double (") quotes must
         // always be converted to a string
         Object object = Random.getObject();
-        String value = MessageFormat.format("{0}{1}{0}", "\"", object.toString());
+        String value = MessageFormat.format("{0}{1}{0}", "\"",
+                object.toString());
         Assert.assertEquals(AbstractImporter.convert(value), object.toString());
     }
 
@@ -129,7 +131,7 @@ public class AbstractImporterTest {
         Link link = (Link) AbstractImporter.convert(value);
         Assert.assertEquals(number.longValue(), link.longValue());
     }
-    
+
     @Test
     public void testConvertLinkFromIntValue() {
         // A int/long that is wrapped between two at (@) symbols must always
@@ -145,37 +147,96 @@ public class AbstractImporterTest {
         Link link = (Link) AbstractImporter.convert(value);
         Assert.assertEquals(number.intValue(), link.intValue());
     }
-    
+
     @Test
-    public void testCannotConvertLinkFromFloatValue(){
+    public void testCannotConvertLinkFromFloatValue() {
         Number number = Random.getFloat();
         String value = MessageFormat
                 .format("{0}{1}{0}", "@", number.toString());
         Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
     }
-    
+
     @Test
-    public void testCannotConvertLinkFromDoubleValue(){
+    public void testCannotConvertLinkFromDoubleValue() {
         Number number = Random.getDouble();
         String value = MessageFormat
                 .format("{0}{1}{0}", "@", number.toString());
         Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
     }
-    
+
     @Test
-    public void testCannotConvertLinkFromBooleanValue(){
+    public void testCannotConvertLinkFromBooleanValue() {
         Boolean number = Random.getBoolean();
         String value = MessageFormat
                 .format("{0}{1}{0}", "@", number.toString());
         Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
     }
-    
+
     @Test
-    public void testCannotConvertLinkFromStringValue(){
+    public void testCannotConvertLinkFromStringValue() {
         String number = Random.getString();
         String value = MessageFormat
                 .format("{0}{1}{0}", "@", number.toString());
         Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
+    }
+
+    @Test
+    public void testConvertBoolean() {
+        Boolean bool = Random.getBoolean();
+        String boolString = scrambleCase(bool.toString());
+        Assert.assertEquals(bool, AbstractImporter.convert(boolString));  
+    }
+    
+    @Test
+    public void testConvertInteger(){
+        Number number = Random.getInt();
+        String string = number.toString();
+        Assert.assertEquals(number, AbstractImporter.convert(string));
+    }
+    
+    @Test
+    public void testConvertLong(){
+        Number number = null;
+        while(number == null || (Long) number <= Integer.MAX_VALUE){
+            number = Random.getLong();
+        }
+        String string = number.toString();
+        Assert.assertEquals(number, AbstractImporter.convert(string));
+    }
+    
+    @Test
+    public void testConvertFloat(){
+        Number number = Random.getFloat();
+        String string = number.toString();
+        Assert.assertEquals(number, AbstractImporter.convert(string));
+    }
+    
+    @Test
+    public void testConvertDouble(){
+        Number number = Random.getDouble();
+        String string = number.toString() + "D";
+        Assert.assertEquals(number, AbstractImporter.convert(string));
+    }
+
+    /**
+     * Randomly flip the case of all the characters in {@code string}.
+     * 
+     * @param string
+     * @return the case scrambled string
+     */
+    private String scrambleCase(String string) {
+        char[] chars = string.toCharArray();
+        for (int i = 0; i < chars.length; i++) {
+            char c = chars[i];
+            if(Random.getInt() % 2 == 0) {
+                c = Character.toLowerCase(c);
+            }
+            else {
+                c = Character.toUpperCase(c);
+            }
+            chars[i] = c;
+        }
+        return new String(chars);
     }
 
 }

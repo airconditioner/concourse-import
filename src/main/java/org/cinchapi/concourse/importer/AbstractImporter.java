@@ -104,6 +104,11 @@ abstract class AbstractImporter implements Importer {
         else if(value.equalsIgnoreCase("false")) {
             return false;
         }
+        else if(value.matches("-?[0-9]+\\.[0-9]+D")) { // Must append "D" to end
+                                                       // of string in order to
+                                                       // force a double
+            return Double.valueOf(value.substring(0, value.length() - 1));
+        }
         else {
             Class<?>[] classes = { Integer.class, Long.class, Float.class,
                     Double.class };
