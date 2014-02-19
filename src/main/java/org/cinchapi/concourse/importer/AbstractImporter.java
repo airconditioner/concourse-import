@@ -23,9 +23,6 @@
  */
 package org.cinchapi.concourse.importer;
 
-import static org.cinchapi.concourse.importer.AbstractImporter.RAW_RESOLVABLE_LINK_SYMBOL_APPEND;
-import static org.cinchapi.concourse.importer.AbstractImporter.RAW_RESOLVABLE_LINK_SYMBOL_PREPEND;
-
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
@@ -98,7 +95,7 @@ abstract class AbstractImporter implements Importer {
             Object theValue = convert(parts[1]);
             return new ResolvableLink(key, theValue);
         }
-        else if(value.matches("@[0-9]+@")) {
+        else if(value.matches("@-?[0-9]+@")) {
             return Link.to(Long.parseLong(value.replace("@", "")));
         }
         else if(value.equalsIgnoreCase("true")) {

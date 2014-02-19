@@ -25,6 +25,7 @@ package org.cinchapi.concourse.importer;
 
 import java.text.MessageFormat;
 
+import org.cinchapi.concourse.Link;
 import org.cinchapi.concourse.importer.AbstractImporter.ResolvableLink;
 import org.cinchapi.concourse.util.Random;
 import org.junit.Assert;
@@ -39,8 +40,10 @@ import static org.cinchapi.concourse.importer.AbstractImporter.RAW_RESOLVABLE_LI
  */
 public class AbstractImporterTest {
 
+    // NOTE: This class contains unit tests for static methods
+
     @Test
-    public void testTransformValueToResolvableLink() { // test of static method
+    public void testTransformValueToResolvableLink() {
         String key = Random.getString();
         String value = Random.getObject().toString();
         Assert.assertEquals(MessageFormat.format("{0}{1}{0}", MessageFormat
@@ -58,17 +61,17 @@ public class AbstractImporterTest {
                 RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
                 RAW_RESOLVABLE_LINK_SYMBOL_APPEND)));
     }
-    
+
     @Test
-    public void testResolvableLinkKeyAndValueRegexWithNumbers(){
+    public void testResolvableLinkKeyAndValueRegexWithNumbers() {
         String key = RAW_RESOLVABLE_LINK_SYMBOL_PREPEND
                 + Random.getNumber().toString()
                 + RAW_RESOLVABLE_LINK_SYMBOL_APPEND;
         String string = key + Random.getNumber().toString() + key;
-        Assert.assertTrue(string.matches(MessageFormat.format("{0}{1}{0}", MessageFormat
-                .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND,
-                        ".+", RAW_RESOLVABLE_LINK_SYMBOL_APPEND),
-                ".+")));
+        Assert.assertTrue(string.matches(MessageFormat.format("{0}{1}{0}",
+                MessageFormat.format("{0}{1}{2}",
+                        RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
+                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+")));
     }
 
     @Test
@@ -83,7 +86,7 @@ public class AbstractImporterTest {
     }
 
     @Test
-    public void testConvertResolvableLink() { // test of static method
+    public void testConvertResolvableLink() {
         String key = Random.getString().replace(" ", "");
         String value = Random.getObject().toString().replace(" ", "");
         ResolvableLink link = (ResolvableLink) LineImporter
@@ -91,6 +94,88 @@ public class AbstractImporterTest {
                         .transformValueToResolvableLink(key, value));
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, AbstractImporter.convert(value));
+    }
+
+    @Test
+    public void testConvertForcedStringSingleQuotes() {
+        // A value that is wrapped in single (') or double (") quotes must
+        // always be converted to a string
+        Object object = Random.getObject();
+        String value = MessageFormat.format("{0}{1}{0}", "'", object.toString());
+        Assert.assertEquals(AbstractImporter.convert(value), object.toString());
+    }
+
+    @Test
+    public void testConvertForcedStringDoubleQuotes() {
+        // A value that is wrapped in single (') or double (") quotes must
+        // always be converted to a string
+        Object object = Random.getObject();
+        String value = MessageFormat.format("{0}{1}{0}", "\"", object.toString());
+        Assert.assertEquals(AbstractImporter.convert(value), object.toString());
+    }
+
+    @Test
+    public void testConvertLinkFromLongValue() {
+        // A int/long that is wrapped between two at (@) symbols must always
+        // convert to a Link
+        Number number = Random.getLong();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString()); // must use
+                                                              // number.toString()
+                                                              // so comma
+                                                              // separators are
+                                                              // not added to
+                                                              // the output
+        Link link = (Link) AbstractImporter.convert(value);
+        Assert.assertEquals(number.longValue(), link.longValue());
+    }
+    
+    @Test
+    public void testConvertLinkFromIntValue() {
+        // A int/long that is wrapped between two at (@) symbols must always
+        // convert to a Link
+        Number number = Random.getInt();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString()); // must use
+                                                              // number.toString()
+                                                              // so comma
+                                                              // separators are
+                                                              // not added to
+                                                              // the output
+        Link link = (Link) AbstractImporter.convert(value);
+        Assert.assertEquals(number.intValue(), link.intValue());
+    }
+    
+    @Test
+    public void testCannotConvertLinkFromFloatValue(){
+        Number number = Random.getFloat();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString());
+        Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
+    }
+    
+    @Test
+    public void testCannotConvertLinkFromDoubleValue(){
+        Number number = Random.getDouble();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString());
+        Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
+    }
+    
+    @Test
+    public void testCannotConvertLinkFromBooleanValue(){
+        Boolean number = Random.getBoolean();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString());
+        Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
+    }
+    
+    @Test
+    public void testCannotConvertLinkFromStringValue(){
+        String number = Random.getString();
+        String value = MessageFormat
+                .format("{0}{1}{0}", "@", number.toString());
+        Assert.assertFalse(AbstractImporter.convert(value) instanceof Link);
     }
 
 }
