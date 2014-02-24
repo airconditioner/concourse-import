@@ -27,15 +27,15 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * An {@link Importer} that can handle files with lines that are delimited by a
- * comma.
+ * An {@link Importer} that can handle CSV files that have header information in
+ * the first line.
  * 
  * @author jnelson
  */
-public class CsvImporter extends LineImporter {
+public class GeneralCsvImporter extends FileLineImporter {
 
     /**
-     * Return a {@link CsvImporter} that is connected to the server at
+     * Return a {@link GeneralCsvImporter} that is connected to the server at
      * {@code host} listening on {@code port} and authenticated using
      * {@code username} and {@code password}.
      * 
@@ -45,9 +45,9 @@ public class CsvImporter extends LineImporter {
      * @param password
      * @return the CsvImporter
      */
-    public static CsvImporter withConnectionInfo(String host, int port,
+    public static GeneralCsvImporter withConnectionInfo(String host, int port,
             String username, String password) {
-        return new CsvImporter(host, port, username, password);
+        return new GeneralCsvImporter(host, port, username, password);
     }
 
     /**
@@ -63,7 +63,7 @@ public class CsvImporter extends LineImporter {
      * @param username
      * @param password
      */
-    protected CsvImporter(String host, int port, String username,
+    protected GeneralCsvImporter(String host, int port, String username,
             String password) {
         super(host, port, username, password);
     }
@@ -92,6 +92,41 @@ public class CsvImporter extends LineImporter {
      */
     protected String delimiter() {
         return DELIMITER;
+    }
+
+    /**
+     * This method allows the subclass to define dynamic intermediary
+     * transformations to data to better prepare it for import. This method is
+     * called before the raw string data is converted to a Java object. There
+     * are several instances for which the subclass should use this method:
+     * <p>
+     * <h2>Specifying Link Resolution</h2>
+     * The importer will convert raw data of the form
+     * <code>@&lt;key&gt;@value@&lt;key&gt;@</code> into a Link to all the
+     * records where key equals value in Concourse. For this purpose, the
+     * subclass can convert the raw value to this form using the
+     * {@link #transformValueToResolvableLink(String, String)} method.
+     * </p>
+     * <p>
+     * <h2>Normalizing Data</h2>
+     * It may be desirable to normalize the raw data before input. For example,
+     * the subclass may wish to convert all strings to a specific case, or
+     * sanitize inputs, etc.
+     * </p>
+     * <p>
+     * <h2>Compacting Representation</h2>
+     * If a column in a file contains a enumerated set of string values, it may
+     * be desirable to transform the values to a string representation of a
+     * number so that, when converted, the data is more compact and takes up
+     * less space.
+     * </p>
+     * 
+     * @param header
+     * @param value
+     * @return the transformed value
+     */
+    protected String transformValue(String header, String value) {
+        return value;
     }
 
     /**

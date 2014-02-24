@@ -23,26 +23,26 @@
  */
 package org.cinchapi.concourse.importer.cli;
 
-import org.cinchapi.concourse.importer.CsvImporter;
+import org.cinchapi.concourse.importer.GeneralCsvImporter;
 
 /**
  * A CLI that imports CSV files into Concourse.
  * 
  * @author jnelson
  */
-public class CsvImportCli extends LineImportCli {
+public class GeneralCsvImportCli extends FileLineImportCli {
 
     /**
      * Construct a new instance.
      * @param args
      */
-    public CsvImportCli(String... args) {
+    public GeneralCsvImportCli(String... args) {
         super(args);
     }
 
     @Override
-    protected CsvImporter importer() {
-        return CsvImporter.withConnectionInfo(options.host, options.port,
+    protected GeneralCsvImporter importer() {
+        return GeneralCsvImporter.withConnectionInfo(options.host, options.port,
                 options.username, options.password);
     }
 

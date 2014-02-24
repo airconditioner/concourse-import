@@ -49,7 +49,7 @@ public class AbstractImporterTest {
         Assert.assertEquals(MessageFormat.format("{0}{1}{0}", MessageFormat
                 .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, key,
                         RAW_RESOLVABLE_LINK_SYMBOL_APPEND), value),
-                LineImporter.transformValueToResolvableLink(key, value));
+                FileLineImporter.transformValueToResolvableLink(key, value));
     }
 
     @Test
@@ -79,7 +79,7 @@ public class AbstractImporterTest {
         String key = Random.getNumber().toString();
         String value = Random.getNumber().toString();
         ResolvableLink link = (ResolvableLink) AbstractImporter
-                .convert(LineImporter
+                .convert(FileLineImporter
                         .transformValueToResolvableLink(key, value));
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, AbstractImporter.convert(value));
@@ -89,8 +89,8 @@ public class AbstractImporterTest {
     public void testConvertResolvableLink() {
         String key = Random.getString().replace(" ", "");
         String value = Random.getObject().toString().replace(" ", "");
-        ResolvableLink link = (ResolvableLink) LineImporter
-                .convert(LineImporter
+        ResolvableLink link = (ResolvableLink) FileLineImporter
+                .convert(FileLineImporter
                         .transformValueToResolvableLink(key, value));
         Assert.assertEquals(link.key, key);
         Assert.assertEquals(link.value, AbstractImporter.convert(value));

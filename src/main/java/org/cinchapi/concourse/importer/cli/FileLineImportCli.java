@@ -24,28 +24,28 @@
 package org.cinchapi.concourse.importer.cli;
 
 import org.cinchapi.concourse.cli.Options;
-import org.cinchapi.concourse.importer.LineImporter;
+import org.cinchapi.concourse.importer.FileLineImporter;
 
 import com.beust.jcommander.Parameter;
 
 /**
- * A CLI that can handle the features of a {@link LineImporter}.
+ * A CLI that can handle the features of a {@link FileLineImporter}.
  * 
  * @author jnelson
  */
-public abstract class LineImportCli extends AbstractImportCli {
+public abstract class FileLineImportCli extends AbstractImportCli {
 
     /**
      * The importer that is used to bring the data in each file into Concourse.
      */
-    private final LineImporter importer;
+    private final FileLineImporter importer;
 
     /**
      * Construct a new instance.
      * 
      * @param args
      */
-    public LineImportCli(String... args) {
+    public FileLineImportCli(String... args) {
         super(new LineImportOptions(), args);
         this.importer = importer(); // must call after super constructors so all
                                     // creds are initialized
@@ -61,7 +61,7 @@ public abstract class LineImportCli extends AbstractImportCli {
      * 
      * @return the importer
      */
-    protected abstract LineImporter importer();
+    protected abstract FileLineImporter importer();
 
     /**
      * Line specific {@link Options}.

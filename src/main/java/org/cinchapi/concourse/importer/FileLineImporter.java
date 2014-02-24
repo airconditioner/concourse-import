@@ -25,26 +25,33 @@ package org.cinchapi.concourse.importer;
 
 import java.io.BufferedReader;
 import java.io.FileReader;
-import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
-
 import javax.annotation.Nullable;
 
-
+import org.cinchapi.concourse.Concourse;
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
 /**
- * A {@link LineImporter} is one that handles files where each line represents a
- * single collection of data that should be imported into one or more (possibly
- * existing) records.
+ * A {@link FileLineImporter} is one that handles data from a file that can be
+ * delimited into one or more lines. Each line is a single
+ * group of data that can be converted to a multimap and imported into one or
+ * more records in Concourse.
+ * <p>
+ * This abstract class handles the logic of splitting the file into a collection
+ * of lines and asynchronously importing those lines. The subclass must delimit
+ * each of those line and parse the appropriate headers and groups using the
+ * {@link #parseHeader(String)} and {@link #parseLine(String, String...)}
+ * </p>
  * 
  * @author jnelson
  */
-public abstract class LineImporter extends AbstractImporter {
+public abstract class FileLineImporter extends AbstractImporter {
+    
+    private final Concourse concourse;
 
     /**
      * Construct a new instance.
@@ -54,11 +61,24 @@ public abstract class LineImporter extends AbstractImporter {
      * @param username
      * @param password
      */
-    protected LineImporter(String host, int port, String username,
+    protected FileLineImporter(String host, int port, String username,
             String password) {
-        super(host, port, username, password);
+        this.concourse = Concourse.connect(host, port, username, password);
     }
 
+    /**
+     * Asynchronously import the lines in {@code file}.
+     * <p>
+     * Each individual line of the file will be possibly split by some
+     * delimiter, processed as a group and added to one or more records in
+     * Concourse.
+     * </p>
+     * 
+     * @param file
+     * @return a collection of {@link ImportResult} objects that describes the
+     *         records created/affected from the import and whether any errors
+     *         occurred.
+     */
     @Override
     public final Collection<ImportResult> importFile(String file) {
         return importFile(file, null); // for the default cause,
@@ -68,11 +88,11 @@ public abstract class LineImporter extends AbstractImporter {
     }
 
     /**
-     * Import the data in {@code file}.
+     * Asynchronously import the lines in {@code file}.
      * <p>
      * Each individual line of the file will be possibly split by some
-     * delimiter, processed as a collection and added to one or more records in
-     * {@link Concourse}.
+     * delimiter, processed as a group and added to one or more records in
+     * Concourse.
      * </p>
      * <p>
      * <strong>Note</strong> that if {@code resolveKey} is specified, an attempt
@@ -88,7 +108,7 @@ public abstract class LineImporter extends AbstractImporter {
      *         occurred.
      */
     public Collection<ImportResult> importFile(String file,
-            @Nullable String resolveKey) {
+            @Nullable final String resolveKey) {
         List<ImportResult> results = Lists.newArrayList();
         String[] keys = header();
         try {
@@ -100,19 +120,21 @@ public abstract class LineImporter extends AbstractImporter {
                     log.info("Processed header: " + line);
                 }
                 else {
-                    ImportResult result = doImport(parseLine(line, keys),
+                    Multimap<String, String> data = parseLine(line,
+                            keys);
+                    ImportResult result = doImport(concourse, data,
                             resolveKey);
                     results.add(result);
                     log.info(MessageFormat
                             .format("Imported {0} into record(s) {1} with {2} error(s)",
                                     line, result.getRecords(),
-                                    result.getErrorCount()));
+                                    result.getErrorCount()));       
                 }
             }
             reader.close();
             return results;
         }
-        catch (IOException e) {
+        catch (Exception e) {
             throw Throwables.propagate(e);
         }
 
@@ -152,37 +174,25 @@ public abstract class LineImporter extends AbstractImporter {
             String... headers);
 
     /**
-     * This method allows the subclass to define dynamic intermediary
-     * transformations to data to better prepare it for import. This method is
-     * called before the raw string data is converted to a Java object. There
-     * are several instances for which the subclass should use this method:
-     * <p>
-     * <h2>Specifying Link Resolution</h2>
-     * The importer will convert raw data of the form
-     * <code>@&lt;key&gt;@value@&lt;key&gt;@</code> into a Link to all the
-     * records where key equals value in Concourse. For this purpose, the
-     * subclass can convert the raw value to this form using the
-     * {@link #transformValueToResolvableLink(String, String)} method.
-     * </p>
-     * <p>
-     * <h2>Normalizing Data</h2>
-     * It may be desirable to normalize the raw data before input. For example,
-     * the subclass may wish to convert all strings to a specific case, or
-     * sanitize inputs, etc.
-     * </p>
-     * <p>
-     * <h2>Compacting Representation</h2>
-     * If a column in a file contains a enumerated set of string values, it may
-     * be desirable to transform the values to a string representation of a
-     * number so that, when converted, the data is more compact and takes up
-     * less space.
-     * </p>
+     * A {@link Runnable} that is launched from the {@link #importFile} and
+     * passed the line to import and the order array of keys.
      * 
-     * @param header
-     * @param value
-     * @return the transformed value
+     * @author jnelson
      */
-    protected String transformValue(String header, String value) {
-        return value;
+    protected abstract class ImportRunnable implements Runnable {
+        protected final String line;
+        protected final String[] keys;
+
+        /**
+         * Construct a new instance.
+         * 
+         * @param line
+         * @param keys
+         */
+        public ImportRunnable(String line, String[] keys) {
+            this.line = line;
+            this.keys = keys;
+        }
+
     }
 }
