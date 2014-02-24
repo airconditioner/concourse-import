@@ -27,8 +27,31 @@ import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
 /**
- * An {@link Importer} that can handle CSV files that have header information in
- * the first line.
+ * <p>
+ * An {@link Importer} that can handle generic CSV files that have header
+ * information in the first line. It is advisable to extend this class for CSV
+ * data that has special requirements. This class makes some general assumptions
+ * that can be configured in a subclass:
+ * </p>
+ * <h2>Header</h2>
+ * <p>
+ * It is assumed that the first line of a CSV file contains the header. If that
+ * is not the case, the subclass can return an ordered array of header keys from
+ * the {@link #header()} method.
+ * </p>
+ * <h2>Delimiter</h2>
+ * <p>
+ * It is assumed that values in a line are comma separated. If that is not the
+ * case, the subclass can specify a different rule in the {@link #delimiter()}
+ * method.
+ * </p>
+ * <h2>Transforming Values</h2>
+ * <p>
+ * It is assumed that the original file data is correct. If that is not the
+ * case, the subclass can selectively transform some values in the
+ * {@link #transformValue(String, String)} method. For example, it might be
+ * desirable specify link resolution, compact data or normalize data.
+ * </p>
  * 
  * @author jnelson
  */
