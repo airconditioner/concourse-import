@@ -8,8 +8,8 @@ repositories {
 }
 
 dependencies {
-    compile 'org.cinchapi:concourse:0.3.0+'
-    compile 'org.cinchapi:concourse-config:1.0.0'
+    compile 'org.cinchapi:concourse:0.3.2+'
+    compile 'org.cinchapi:concourse-config:1.0.1'
     compile 'org.cinchapi:concourse-cli:1.0.0'
     compile 'com.google.guava:guava:15.0'
     compile 'com.intellij:annotations:12.0'

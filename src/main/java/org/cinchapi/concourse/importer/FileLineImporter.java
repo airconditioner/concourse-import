@@ -50,8 +50,6 @@ import com.google.common.collect.Multimap;
  * @author jnelson
  */
 public abstract class FileLineImporter extends AbstractImporter {
-    
-    private final Concourse concourse;
 
     /**
      * Construct a new instance.
@@ -63,32 +61,11 @@ public abstract class FileLineImporter extends AbstractImporter {
      */
     protected FileLineImporter(String host, int port, String username,
             String password) {
-        this.concourse = Concourse.connect(host, port, username, password);
+        super(Concourse.connect(host, port, username, password));
     }
 
     /**
-     * Asynchronously import the lines in {@code file}.
-     * <p>
-     * Each individual line of the file will be possibly split by some
-     * delimiter, processed as a group and added to one or more records in
-     * Concourse.
-     * </p>
-     * 
-     * @param file
-     * @return a collection of {@link ImportResult} objects that describes the
-     *         records created/affected from the import and whether any errors
-     *         occurred.
-     */
-    @Override
-    public final Collection<ImportResult> importFile(String file) {
-        return importFile(file, null); // for the default cause,
-                                       // assume that we want to
-                                       // import each line into a
-                                       // new record
-    }
-
-    /**
-     * Asynchronously import the lines in {@code file}.
+     * Import the lines in {@code file}.
      * <p>
      * Each individual line of the file will be possibly split by some
      * delimiter, processed as a group and added to one or more records in
@@ -107,7 +84,8 @@ public abstract class FileLineImporter extends AbstractImporter {
      *         records created/affected from the import and whether any errors
      *         occurred.
      */
-    public Collection<ImportResult> importFile(String file,
+    @Override
+    public Collection<ImportResult> handleFileImport(String file,
             @Nullable final String resolveKey) {
         List<ImportResult> results = Lists.newArrayList();
         String[] keys = header();
@@ -120,15 +98,13 @@ public abstract class FileLineImporter extends AbstractImporter {
                     log.info("Processed header: " + line);
                 }
                 else {
-                    Multimap<String, String> data = parseLine(line,
-                            keys);
-                    ImportResult result = doImport(concourse, data,
-                            resolveKey);
+                    Multimap<String, String> data = parseLine(line, keys);
+                    ImportResult result = importGroup(data, resolveKey);
                     results.add(result);
                     log.info(MessageFormat
                             .format("Imported {0} into record(s) {1} with {2} error(s)",
                                     line, result.getRecords(),
-                                    result.getErrorCount()));       
+                                    result.getErrorCount()));
                 }
             }
             reader.close();

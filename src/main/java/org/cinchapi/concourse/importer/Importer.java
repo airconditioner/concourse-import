@@ -43,4 +43,21 @@ public interface Importer {
      */
     public Collection<ImportResult> importFile(String file);
 
+    /**
+     * Import the data contained in {@code file} into {@link Concourse}.
+     * <p>
+     * <strong>Note</strong> that if {@code resolveKey} is specified, an attempt
+     * will be made to add the data in from each group into the existing records
+     * that are found using {@code resolveKey} and its corresponding value in
+     * the group.
+     * </p>
+     * 
+     * @param file
+     * @param resolveKey
+     * @return a collection of {@link ImportResult} objects that describes the
+     *         records created/affected from the import and whether any errors
+     *         occurred.
+     */
+    public Collection<ImportResult> importFile(String file, String resolveKey);
+
 }

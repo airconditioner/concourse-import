@@ -24,16 +24,16 @@
 package org.cinchapi.concourse.importer;
 
 import java.text.MessageFormat;
+import java.util.Collection;
 import java.util.List;
 import java.util.Set;
 
 import javax.annotation.Nullable;
-import javax.annotation.concurrent.Immutable;
-
 import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.Link;
-import org.cinchapi.concourse.annotate.PackagePrivate;
 import org.cinchapi.concourse.thrift.Operator;
+import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Convert.ResolvableLink;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,10 +45,10 @@ import com.google.common.collect.Sets;
 /**
  * Base implementation of the {@link Importer} interface that handles the work
  * of importing data into Concourse. The subclass that extends this
- * implementation only needs to worry about providing connection(s) to Concourse
- * and converting each group of raw data (i.e. a line in csv file) into a
- * {@link Multimap} that is passed to the
- * {@link #doImport(Concourse, Multimap, String)} method.
+ * implementation only needs to worry about implementing the
+ * {@link #handleFileImport(String)} method and converting each group of raw
+ * data (i.e. a line in csv file) into a {@link Multimap} that is passed to the
+ * {@link #importGroup(Multimap, String)} method.
  * <p>
  * This implementation does not mandate anything about the structure of the raw
  * data other than the assumption that it can be transformed into one or more
@@ -60,7 +60,7 @@ import com.google.common.collect.Sets;
  * <h2>Import into new record</h2>
  * <p>
  * By default, all the data in a group is converted into one new record when
- * using the {@link #doImport(Concourse, Multimap)} method.
+ * using the {@link #importGroup(Concourse, Multimap)} method.
  * </p>
  * <h2>Import into existing record(s)</h2>
  * <p>
@@ -86,8 +86,8 @@ import com.google.common.collect.Sets;
  * another existing record. There is a special format for specifying
  * <strong>resolvable links</strong> in raw data. The subclass can convert the
  * raw data to that format by calling the
- * {@link #transformValueToResolvableLink(String, String)} on the raw data
- * before converting it to a multimap.
+ * {@link Convert#stringToResolvableLinkSpecification(String, String)} on the
+ * raw data before converting it to a multimap.
  * </p>
  * <p>
  * When the importer encounters a {@link ResolvableLink}, similar to a
@@ -124,120 +124,64 @@ import com.google.common.collect.Sets;
 public abstract class AbstractImporter implements Importer {
 
     /**
-     * Transform the {@code rawValue} into a resolvable link specification using
-     * the {@code resolvableKey}. This method should be called by the subclass
-     * on raw data <strong>before</strong> converting it to a multimap. For a
-     * resolvable link, it is desirable to have the multimap given to the
-     * {@link #doImport(Multimap)} methods map the linkable key to a string that
-     * describes the resolvable record. The format of that string is returned
-     * from this method.
-     * 
-     * @param resolvableKey
-     * @param rawValue
-     * @return the transformed value.
-     */
-    protected static String transformValueToResolvableLink(
-            String resolvableKey, String rawValue) {
-        return MessageFormat.format("{0}{1}{0}", MessageFormat.format(
-                "{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, resolvableKey,
-                RAW_RESOLVABLE_LINK_SYMBOL_APPEND), rawValue);
-    }
-
-    /**
-     * Analyze {@code value} and convert it to the appropriate Java primitive or
-     * Object. This method is called internally from the
-     * {@link #doImport(Multimap)} methods to convert the raw string values in
-     * the multimap to the actual data that is imported into Concourse.
-     * 
-     * @param value
-     * @return the converted value
-     */
-    @PackagePrivate
-    static Object convert(String value) { // visible for testing, should only be
-                                          // called internally
-        if(value.matches("\"([^\"]+)\"|'([^']+)'")) { // keep value as
-                                                      // string since its
-                                                      // between single or
-                                                      // double quotes
-            return value.substring(1, value.length() - 1);
-        }
-        else if(value.matches(MessageFormat.format("{0}{1}{0}", MessageFormat
-                .format("{0}{1}{2}", RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, ".+",
-                        RAW_RESOLVABLE_LINK_SYMBOL_APPEND), ".+"))) {
-            String[] parts = value.split(RAW_RESOLVABLE_LINK_SYMBOL_PREPEND, 3)[1]
-                    .split(RAW_RESOLVABLE_LINK_SYMBOL_APPEND, 2);
-            String key = parts[0];
-            Object theValue = convert(parts[1]);
-            return new ResolvableLink(key, theValue);
-        }
-        else if(value.matches("@-?[0-9]+@")) {
-            return Link.to(Long.parseLong(value.replace("@", "")));
-        }
-        else if(value.equalsIgnoreCase("true")) {
-            return true;
-        }
-        else if(value.equalsIgnoreCase("false")) {
-            return false;
-        }
-        else if(value.matches("-?[0-9]+\\.[0-9]+D")) { // Must append "D" to end
-                                                       // of string in order to
-                                                       // force a double
-            return Double.valueOf(value.substring(0, value.length() - 1));
-        }
-        else {
-            Class<?>[] classes = { Integer.class, Long.class, Float.class,
-                    Double.class };
-            for (Class<?> clazz : classes) {
-                try {
-                    return clazz.getMethod("valueOf", String.class).invoke(
-                            null, value);
-                }
-                catch (Exception e) {
-                    if(e instanceof NumberFormatException
-                            || e.getCause() instanceof NumberFormatException) {
-                        continue;
-                    }
-                }
-            }
-            return value;
-        }
-    }
-
-    /**
-     * The component of a resolvable link symbol that comes before the
-     * resolvable key specification in the raw data.
-     */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_PREPEND = "@<"; // visible
-                                                                   // for
-                                                                   // testing
-
-    /**
-     * The component of a resolvable link symbol that comes after the
-     * resolvable key specification in the raw data.
-     */
-    @PackagePrivate
-    static final String RAW_RESOLVABLE_LINK_SYMBOL_APPEND = ">@"; // visible
-                                                                  // for
-                                                                  // testing
-
-    /**
      * A Logger that is available for the subclass to log helpful messages.
      */
     protected Logger log = LoggerFactory.getLogger(getClass());
 
     /**
+     * The connection to Concourse.
+     */
+    private final Concourse concourse;
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected AbstractImporter(Concourse concourse) {
+        this.concourse = concourse;
+    }
+
+    @Override
+    public Collection<ImportResult> importFile(String file) {
+        return importFile(file, null);
+    }
+
+    @Override
+    public final Collection<ImportResult> importFile(String file,
+            @Nullable String resolveKey) {
+        concourse.stage();
+        Collection<ImportResult> results = handleFileImport(file, resolveKey);
+        if(concourse.commit()) {
+            return results;
+        }
+        else {
+            throw new RuntimeException("Could not import " + file);
+        }
+
+    }
+
+    /**
+     * Split {@code file} into the appropriate groups, and call
+     * {@link #importGroup(Multimap)} to get the data into Concourse.
+     * 
+     * @param file
+     * @param resolveKey
+     * @return the results of the import
+     */
+    protected abstract Collection<ImportResult> handleFileImport(String file,
+            @Nullable String resolveKey);
+
+    /**
      * Import a single group of {@code data} into a new record in
      * {@code concourse}.
      * 
-     * @param concourse
      * @param data
      * @return an {@link ImportResult} object that describes the records
      *         created/affected from the import and whether any errors occurred.
      */
-    protected ImportResult doImport(Concourse concourse,
-            Multimap<String, String> data) {
-        return doImport(concourse, data, null);
+    protected final ImportResult importGroup(Multimap<String, String> data) {
+        return importGroup(data, null);
     }
 
     /**
@@ -250,42 +194,41 @@ public abstract class AbstractImporter implements Importer {
      * record.
      * </p>
      * 
-     * @param concourse
      * @param data
      * @param resolveKey
      * @return an {@link ImportResult} object that describes the records
      *         created/affected from the import and whether any errors occurred.
      */
-    protected ImportResult doImport(Concourse concourse,
-            Multimap<String, String> data, @Nullable String resolveKey) {
+    protected final ImportResult importGroup(Multimap<String, String> data,
+            @Nullable String resolveKey) {
         // Determine import record(s)
         Set<Long> records = Sets.newHashSet();
         for (String resolveValue : data.get(resolveKey)) {
-            records = Sets.union(records, concourse.find(resolveKey,
-                    Operator.EQUALS, convert(resolveValue)));
+            records = Sets.union(
+                    records,
+                    concourse.find(resolveKey, Operator.EQUALS,
+                            Convert.stringToJava(resolveValue)));
         }
         if(records.isEmpty()) {
             records.add(concourse.create());
         }
         // Iterate through the data and add it to Concourse
         ImportResult result = ImportResult.newImportResult(data, records);
-        concourse.stage();
         for (String key : data.keySet()) {
             for (String rawValue : data.get(key)) {
                 if(!Strings.isNullOrEmpty(rawValue)) { // do not waste time
                                                        // sending empty
                                                        // values
                                                        // over the wire
-                    Object convertedValue = convert(rawValue);
+                    Object convertedValue = Convert.stringToJava(rawValue);
                     List<Object> values = Lists.newArrayList();
                     if(convertedValue instanceof ResolvableLink) {
                         // Find all the records that resolve and create a
-                        // Link
-                        // to those records.
+                        // Link to those records.
                         for (long record : concourse.find(
-                                ((ResolvableLink) convertedValue).key,
+                                ((ResolvableLink) convertedValue).getKey(),
                                 Operator.EQUALS,
-                                ((ResolvableLink) convertedValue).value)) {
+                                ((ResolvableLink) convertedValue).getValue())) {
                             values.add(Link.to(record));
                         }
                     }
@@ -304,41 +247,7 @@ public abstract class AbstractImporter implements Importer {
                 }
             }
         }
-        if(concourse.commit()) {
-            return result;
-        }
-        else {
-            // TODO add some max number of retries before giving up?
-            log.warn("Error trying to commit import of {0}. "
-                    + "Attempting to retry the import...", data);
-            return doImport(concourse, data, resolveKey);
-        }
-    }
-
-    /**
-     * A special class that is used to indicate that the record to which a Link
-     * should point must be resolved by finding all records that have a
-     * specified key equal to a specified value.
-     * 
-     * @author jnelson
-     */
-    @Immutable
-    protected static final class ResolvableLink { // visible for testing
-
-        protected final String key;
-        protected final Object value;
-
-        /**
-         * Construct a new instance.
-         * 
-         * @param key
-         * @param value
-         */
-        private ResolvableLink(String key, Object value) {
-            this.key = key;
-            this.value = value;
-        }
-
+        return result;
     }
 
 }

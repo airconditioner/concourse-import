@@ -144,11 +144,11 @@ public class GeneralCsvImporter extends FileLineImporter {
      * less space.
      * </p>
      * 
-     * @param header
+     * @param key
      * @param value
      * @return the transformed value
      */
-    protected String transformValue(String header, String value) {
+    protected String transformValue(String key, String value) {
         return value;
     }
 
