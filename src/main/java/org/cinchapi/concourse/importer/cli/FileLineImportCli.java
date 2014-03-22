@@ -23,8 +23,12 @@
  */
 package org.cinchapi.concourse.importer.cli;
 
+import java.text.MessageFormat;
+import java.util.Collection;
+
 import org.cinchapi.concourse.cli.Options;
 import org.cinchapi.concourse.importer.FileLineImporter;
+import org.cinchapi.concourse.importer.ImportResult;
 
 import com.beust.jcommander.Parameter;
 
@@ -53,7 +57,10 @@ public abstract class FileLineImportCli extends AbstractImportCli {
 
     @Override
     protected final void doImport(String file) {
-        importer.importFile(file, ((LineImportOptions) options).resolveKey);
+        Collection<ImportResult> results = importer.importFile(file,
+                ((LineImportOptions) options).resolveKey);
+        System.out.println(MessageFormat.format("Imported {0} lines",
+                results.size()));
     }
 
     /**

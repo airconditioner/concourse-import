@@ -23,6 +23,8 @@
  */
 package org.cinchapi.concourse.importer;
 
+import org.cinchapi.concourse.util.Arrays;
+
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 
@@ -74,6 +76,20 @@ public class GeneralCsvImporter extends FileLineImporter {
     }
 
     /**
+     * Split a string on a delimiter as long as that delimiter is not wrapped in
+     * double quotes.
+     * 
+     * @param string
+     * @param delimiter
+     * @return the split string tokens
+     */
+    protected static String[] splitStringByDelimterAndRespectQuotes(
+            String string, String delimiter) { // visible for testing
+        // http://stackoverflow.com/a/15739087/1336833
+        return string.split(delimiter + "(?=([^\"]*\"[^\"]*\")*[^\"]*$)");
+    }
+
+    /**
      * The delimiter that is used to separate fields in the CSV file.
      */
     private static final String DELIMITER = ",";
@@ -93,16 +109,25 @@ public class GeneralCsvImporter extends FileLineImporter {
 
     @Override
     public String[] parseHeader(String line) {
-        return prepareLine(line).split(delimiter());
+        String[] toks = splitStringByDelimterAndRespectQuotes(
+                prepareLine(line), delimiter());
+        for (int i = 0; i < toks.length; i++) {
+            toks[i] = toks[i].trim(); // trim in case the header has whitespace
+                                      // BEFORE the comma
+        }
+        return toks;
     }
 
     @Override
     public final Multimap<String, String> parseLine(String line,
             String... headers) {
         Multimap<String, String> data = LinkedHashMultimap.create();
-        String[] toks = prepareLine(line).split(delimiter());
+        String[] toks = splitStringByDelimterAndRespectQuotes(
+                prepareLine(line), delimiter());
         for (int i = 0; i < toks.length; i++) {
-            data.put(headers[i], transformValue(headers[i], toks[i]));
+            for (String value : transformValue(headers[i], toks[i])) {
+                data.put(headers[i], value);
+            }
         }
         return data;
     }
@@ -148,8 +173,8 @@ public class GeneralCsvImporter extends FileLineImporter {
      * @param value
      * @return the transformed value
      */
-    protected String transformValue(String key, String value) {
-        return value;
+    protected String[] transformValue(String key, String value) {
+        return Arrays.newArrayWithItems(value);
     }
 
     /**

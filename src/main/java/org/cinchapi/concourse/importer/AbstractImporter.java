@@ -158,7 +158,6 @@ public abstract class AbstractImporter implements Importer {
         else {
             throw new RuntimeException("Could not import " + file);
         }
-
     }
 
     /**
@@ -208,6 +207,9 @@ public abstract class AbstractImporter implements Importer {
                     records,
                     concourse.find(resolveKey, Operator.EQUALS,
                             Convert.stringToJava(resolveValue)));
+            records = Sets.newHashSet(records); // must make copy because
+                                                // previous method returns
+                                                // immutable view
         }
         if(records.isEmpty()) {
             records.add(concourse.create());
