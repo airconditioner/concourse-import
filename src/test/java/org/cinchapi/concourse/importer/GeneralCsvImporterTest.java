@@ -45,4 +45,13 @@ public class GeneralCsvImporterTest {
                 Arrays.toString(splitted));
     }
 
+    @Test
+    public void testSplitStringByDelimeterWithTrailiningSpaceAndRespectQuotes() {
+        String string = "\"New Leaf, Same Page \"";
+        String[] splitted = GeneralCsvImporter
+                .splitStringByDelimterAndRespectQuotes(string, ",");
+        Assert.assertEquals("[\"New Leaf, Same Page \"]",
+                Arrays.toString(splitted));
+    }
+
 }
