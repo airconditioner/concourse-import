@@ -8,7 +8,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.cinchapi:concourse:0.3.3-rc1'
+    compile 'org.cinchapi:concourse:0.3.3'
     compile 'org.cinchapi:concourse-config:1.0.2'
     compile 'org.cinchapi:concourse-cli:1.0.1'
     compile 'com.google.guava:guava:15.0'
@@ -85,7 +85,7 @@ uploadArchives {
             pom.version = '1.0.1'
 
             pom.project {
-               name 'Concourse Configuration Framework'
+               name 'Concourse Import Framework'
                packaging 'jar'
                description 'A framework for importing raw data into Concourse'
                url 'http://cinchapi.org/concourse'
