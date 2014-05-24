@@ -31,6 +31,7 @@ import junit.framework.Assert;
 import org.cinchapi.concourse.importer.ImportResult;
 import org.cinchapi.concourse.thrift.Operator;
 import org.cinchapi.concourse.util.Convert;
+import org.cinchapi.concourse.util.Resources;
 import org.junit.Ignore;
 import org.junit.Test;
 
@@ -55,10 +56,8 @@ public class ResolveKeyTest extends CsvImportBaseTest {
 
     @Test
     public void testResolveKey() {
-        String file0 = this.getClass().getResource("/resolve_key_0.csv")
-                .getFile();
-        String file1 = this.getClass().getResource("/resolve_key_1.csv")
-                .getFile();
+        String file0 = Resources.get("/resolve_key_0.csv").getFile();
+        String file1 = Resources.get("/resolve_key_1.csv").getFile();
         String resolveKey = "ipeds_id";
         importer.importFile(file0, resolveKey);
         Collection<ImportResult> results = importer.importFile(file1,
@@ -67,7 +66,6 @@ public class ResolveKeyTest extends CsvImportBaseTest {
             Object value = Convert.stringToJava(Iterables.getOnlyElement(result
                     .getImportData().get(resolveKey)));
             Set<Long> records = client.find(resolveKey, Operator.EQUALS, value);
-            System.out.println("here");
             Assert.assertEquals(1, records.size());
         }
 
