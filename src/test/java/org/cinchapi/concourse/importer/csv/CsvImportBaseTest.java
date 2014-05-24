@@ -23,6 +23,9 @@
  */
 package org.cinchapi.concourse.importer.csv;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.Collection;
 import java.util.Set;
 
@@ -40,6 +43,8 @@ import org.junit.Test;
 import com.google.common.base.Strings;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.Sets;
+import com.google.common.io.Files;
+import com.google.common.io.InputSupplier;
 
 /**
  * The base test for those that verify the integrity of the import framework for
@@ -62,9 +67,19 @@ public abstract class CsvImportBaseTest extends ClientServerTest {
     }
 
     @Test
-    public void testImport() {
-        Collection<ImportResult> results = importer.importFile(this.getClass()
-                .getResource("/" + getImportFile()).getFile());
+    public void testImport() throws IOException {
+        File temp = File.createTempFile("csv-import-", "tmp");
+        Files.copy(new InputSupplier<InputStream>() {
+
+            @Override
+            public InputStream getInput() throws IOException {
+                return this.getClass().getResourceAsStream(
+                        "/" + getImportFile());
+            }
+
+        }, temp);
+        Collection<ImportResult> results = importer.importFile(temp.toURI()
+                .toURL().getFile());
         for (ImportResult result : results) {
             // Verify no errors
             Assert.assertEquals(0, result.getErrorCount());
@@ -132,7 +147,5 @@ public abstract class CsvImportBaseTest extends ClientServerTest {
     protected String getServerVersion() {
         return "0.3.4";
     }
-    
-    
 
 }
