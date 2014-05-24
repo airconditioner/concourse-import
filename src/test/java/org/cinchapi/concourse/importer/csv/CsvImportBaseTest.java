@@ -128,4 +128,11 @@ public abstract class CsvImportBaseTest extends ClientServerTest {
                 server.getClientPort(), "admin", "admin");
     }
 
+    @Override
+    protected String getServerVersion() {
+        return "0.3.4";
+    }
+    
+    
+
 }

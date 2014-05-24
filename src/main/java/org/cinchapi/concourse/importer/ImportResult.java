@@ -26,6 +26,8 @@ package org.cinchapi.concourse.importer;
 import java.util.List;
 import java.util.Set;
 
+import javax.annotation.concurrent.Immutable;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
 
@@ -35,6 +37,7 @@ import com.google.common.collect.Multimap;
  *
  * @author jnelson
  */
+@Immutable
 public final class ImportResult {
 
     // NOTE: This class does not define hashCode(), equals() or toString()

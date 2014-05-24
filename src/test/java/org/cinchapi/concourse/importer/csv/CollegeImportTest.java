@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.importer.csv;
 
+
 /**
  * 
  * 
@@ -33,6 +34,6 @@ public class CollegeImportTest extends CsvImportBaseTest{
     @Override
     protected String getImportFile() {
         return "college.csv";
-    }
+    }   
 
 }
