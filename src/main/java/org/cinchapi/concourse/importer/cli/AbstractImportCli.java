@@ -185,7 +185,7 @@ public abstract class AbstractImportCli extends CommandLineInterface {
         @Parameter(names = { "-d", "--data" }, description = "The path to the file or directory to import", required = true)
         public String data;
 
-        @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import. The default value is (1)")
+        @Parameter(names = "--numThreads", description = "The number of worker threads to use for a multithreaded import")
         public int numThreads = 1;
 
     }
