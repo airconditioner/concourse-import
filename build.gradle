@@ -9,7 +9,7 @@ repositories {
 
 dependencies {
     compile 'org.cinchapi:concourse:0.4.0-rc1'
-    compile ('org.cinchapi:concourse-config:1.0.3'){
+    compile ('org.cinchapi:concourse-config:1.1.0'){
     	exclude group: 'org.cinchapi', module:'concourse'
     }
     compile ('org.cinchapi:concourse-cli:1.1.0'){
@@ -21,7 +21,9 @@ dependencies {
     compile 'jline:jline:2.11'
     
     testCompile 'junit:junit:4.11'
-    testCompile 'org.cinchapi:concourse-test:1.1.1'
+    testCompile ('org.cinchapi:concourse-test:1.1.1'){
+    	exclude group: 'org.cinchapi', module:'concourse'
+    }
 }
 
 task wrapper(type: Wrapper) {

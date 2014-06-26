@@ -76,6 +76,24 @@ public class GeneralCsvImporter extends FileLineImporter {
     }
 
     /**
+     * Return a {@link GeneralCsvImporter} that is connected to the server at
+     * {@code host} listening on {@code port} and authenticated using
+     * {@code username} and {@code password}.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     * @return the CsvImporter
+     */
+    public static GeneralCsvImporter withConnectionInfo(String host, int port,
+            String username, String password, String environment) {
+        return new GeneralCsvImporter(host, port, username, password,
+                environment);
+    }
+
+    /**
      * Split a string on a delimiter as long as that delimiter is not wrapped in
      * double quotes.
      * 
@@ -105,6 +123,20 @@ public class GeneralCsvImporter extends FileLineImporter {
     protected GeneralCsvImporter(String host, int port, String username,
             String password) {
         super(host, port, username, password);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     */
+    protected GeneralCsvImporter(String host, int port, String username,
+            String password, String environment) {
+        super(host, port, username, password, environment);
     }
 
     @Override

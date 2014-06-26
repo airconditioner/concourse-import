@@ -43,7 +43,7 @@ public class GeneralCsvImportCli extends FileLineImportCli {
     @Override
     protected GeneralCsvImporter importer() {
         return GeneralCsvImporter.withConnectionInfo(options.host, options.port,
-                options.username, options.password);
+                options.username, options.password, options.environment);
     }
 
 }

@@ -65,6 +65,20 @@ public abstract class FileLineImporter extends AbstractImporter {
     }
 
     /**
+     * Construct a new instance.
+     * 
+     * @param host
+     * @param port
+     * @param username
+     * @param password
+     * @param environment
+     */
+    protected FileLineImporter(String host, int port, String username,
+            String password, String environment) {
+        super(Concourse.connect(host, port, username, password, environment));
+    }
+
+    /**
      * Import the lines in {@code file}.
      * <p>
      * Each individual line of the file will be possibly split by some
