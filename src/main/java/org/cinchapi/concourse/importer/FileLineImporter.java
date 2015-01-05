@@ -28,9 +28,12 @@ import java.io.FileReader;
 import java.text.MessageFormat;
 import java.util.Collection;
 import java.util.List;
+
 import javax.annotation.Nullable;
 
 import org.cinchapi.concourse.Concourse;
+import org.cinchapi.concourse.util.FileUtility;
+
 import com.google.common.base.Throwables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Multimap;
@@ -104,7 +107,7 @@ public abstract class FileLineImporter extends AbstractImporter {
         List<ImportResult> results = Lists.newArrayList();
         String[] keys = header();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(file));
+            BufferedReader reader = new BufferedReader(new FileReader(FileUtility.expandPath(file)));
             String line;
             while ((line = reader.readLine()) != null) {
                 if(keys == null) {

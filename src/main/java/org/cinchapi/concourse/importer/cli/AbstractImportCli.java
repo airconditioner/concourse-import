@@ -36,6 +36,7 @@ import java.util.concurrent.TimeUnit;
 
 import org.cinchapi.concourse.cli.CommandLineInterface;
 import org.cinchapi.concourse.cli.Options;
+import org.cinchapi.concourse.util.FileUtility;
 
 import com.beust.jcommander.Parameter;
 import com.google.common.base.Stopwatch;
@@ -102,7 +103,7 @@ public abstract class AbstractImportCli extends CommandLineInterface {
         ExecutorService executor = Executors
                 .newFixedThreadPool(((ImportOptions) options).numThreads);
         String data = ((ImportOptions) options).data;
-        List<String> files = scan(Paths.get(data));
+        List<String> files = scan(Paths.get(FileUtility.expandPath(data)));
         Stopwatch watch = Stopwatch.createStarted();
         for (final String file : files) {
             executor.execute(new Runnable() {
@@ -137,7 +138,7 @@ public abstract class AbstractImportCli extends CommandLineInterface {
             if(Files.isDirectory(path)) {
                 Iterator<Path> it = Files.newDirectoryStream(path).iterator();
                 while (it.hasNext()) {
-                    files.addAll(scan(path));
+                    files.addAll(scan(it.next()));
                 }
             }
             else {
