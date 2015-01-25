@@ -31,7 +31,7 @@ import java.nio.file.Path;
 /**
  * Simple Utility providing tools for working with the file system and paths.
  * 
- * @author jnelson
+ * @author hmitchell
  */
 public class FileUtility {
  
