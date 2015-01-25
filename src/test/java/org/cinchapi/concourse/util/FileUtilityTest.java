@@ -33,7 +33,7 @@ import org.junit.Test;
  * @author hmitchell
  *
  */
-public class TestFileUtility {
+public class FileUtilityTest {
 
 	/**
 	 * Test that relative paths with be resolved correctly.
