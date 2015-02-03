@@ -82,6 +82,15 @@ public abstract class FileLineImporter extends AbstractImporter {
     }
 
     /**
+     * Construct a new instance with a Concourse instance.
+     * 
+     * @param concourse
+     */
+    protected FileLineImporter(Concourse concourse) {
+        super(concourse);
+    }
+
+    /**
      * Import the lines in {@code file}.
      * <p>
      * Each individual line of the file will be possibly split by some
@@ -107,7 +116,8 @@ public abstract class FileLineImporter extends AbstractImporter {
         List<ImportResult> results = Lists.newArrayList();
         String[] keys = header();
         try {
-            BufferedReader reader = new BufferedReader(new FileReader(FileUtility.expandPath(file)));
+            BufferedReader reader = new BufferedReader(new FileReader(
+                    FileUtility.expandPath(file)));
             String line;
             while ((line = reader.readLine()) != null) {
                 if(keys == null) {

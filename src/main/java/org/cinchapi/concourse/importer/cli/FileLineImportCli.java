@@ -57,10 +57,16 @@ public abstract class FileLineImportCli extends AbstractImportCli {
 
     @Override
     protected final void doImport(String file) {
-        Collection<ImportResult> results = importer.importFile(file,
-                ((LineImportOptions) options).resolveKey);
-        System.out.println(MessageFormat.format("Imported {0} lines",
-                results.size()));
+        if(importer != null) {
+            Collection<ImportResult> results = importer.importFile(file,
+                    ((LineImportOptions) options).resolveKey);
+            System.out.println(MessageFormat.format("Imported {0} lines",
+                    results.size()));
+        }
+        else {
+            System.err
+                    .println("Cannot import file:  importer failed to initialize.");
+        }
     }
 
     /**

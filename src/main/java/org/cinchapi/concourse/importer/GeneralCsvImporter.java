@@ -23,6 +23,7 @@
  */
 package org.cinchapi.concourse.importer;
 
+import org.cinchapi.concourse.Concourse;
 import org.cinchapi.concourse.util.Arrays;
 
 import com.google.common.collect.LinkedHashMultimap;
@@ -94,6 +95,17 @@ public class GeneralCsvImporter extends FileLineImporter {
     }
 
     /**
+     * Return a {@link GeneralCsvImporter} that is connected to
+     * {@code concourse}.
+     * 
+     * @param concourse
+     * @return the CsvImport connected to Concourse
+     */
+    public static GeneralCsvImporter withConcourse(Concourse concourse) {
+        return new GeneralCsvImporter(concourse);
+    }
+
+    /**
      * Split a string on a delimiter as long as that delimiter is not wrapped in
      * double quotes.
      * 
@@ -137,6 +149,15 @@ public class GeneralCsvImporter extends FileLineImporter {
     protected GeneralCsvImporter(String host, int port, String username,
             String password, String environment) {
         super(host, port, username, password, environment);
+    }
+
+    /**
+     * Construct a new instance.
+     * 
+     * @param concourse
+     */
+    protected GeneralCsvImporter(Concourse concourse) {
+        super(concourse);
     }
 
     @Override
@@ -218,5 +239,4 @@ public class GeneralCsvImporter extends FileLineImporter {
     private String prepareLine(String line) {
         return line.replaceAll(DELIMITER + " ", DELIMITER);
     }
-
 }

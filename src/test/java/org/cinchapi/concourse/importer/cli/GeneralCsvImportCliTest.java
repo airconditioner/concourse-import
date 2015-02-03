@@ -29,54 +29,50 @@ import org.junit.Test;
 
 /**
  * Test cases for {@link GeneralCsvImportCli}.
+ * 
  * @author hmitchell
  *
  */
 public class GeneralCsvImportCliTest extends ClientServerTest {
 
-    @Override
-    protected void afterEachTest() {
-    	importCli = null;
-    }
-
-    @Override
-    protected void beforeEachTest() {
-    	importCli = getImportCli();
+    /**
+     * Test that a {@link GeneralCsvImportCli} command line interface can accept
+     * arguments and import a directory of files without any exceptions.
+     */
+    @Test
+    public void testImportDirectory() throws Exception {
+        getImportCli("admin").run();
     }
 
     /**
-     * Test that a {@link GeneralCsvImportCli} command line interface can accept 
-     * arguments and import a directory of files without any exceptions.
+     * Return a {@link GeneralCsvImportCli} created with default arguments and
+     * {@link pathToData}.
+     * 
+     * @param password
+     * @return the import cli
      */
-	@Test
-	public void testImportDirectory () throws Exception {
-		importCli.run();
-	}
-	
-	/**
-	 * Return a {@link GeneralCsvImportCli} created with default arguments and {@link pathToData}.
-	 * @return
-	 */
-	public GeneralCsvImportCli getImportCli (){
-		 return new GeneralCsvImportCli("--password", "admin", "-p", String.valueOf(server.getClientPort()), "-d", pathToData());
-	}
-	
-	/**
-	 * Path to data to import for test cases.
-	 * @return
-	 */
-	protected String pathToData(){
-		return "bin/../src/test/resources";
-	}
+    public GeneralCsvImportCli getImportCli(String password) {
+        return new GeneralCsvImportCli("--password", password, "-p",
+                String.valueOf(server.getClientPort()), "-d", pathToData());
+    }
+
+    /**
+     * Path to data to import for test cases.
+     * 
+     * @return string value of path
+     */
+    protected String pathToData() {
+        return "bin/../src/test/resources";
+    }
 
     @Override
     protected String getServerVersion() {
         return "0.3.4";
     }
-	
+
     /**
      * {@link GeneralCsvImportCli} used for test cases.
      */
-	protected GeneralCsvImportCli importCli;
+    protected GeneralCsvImportCli importCli;
 
 }
