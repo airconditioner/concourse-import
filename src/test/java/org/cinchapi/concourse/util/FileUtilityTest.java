@@ -30,33 +30,41 @@ import org.junit.Test;
 /**
  * 
  * Unit tests for {@link FileUtility}.
+ * 
  * @author hmitchell
  *
  */
 public class FileUtilityTest {
 
-	/**
-	 * Test that relative paths with be resolved correctly.
-	 */
-	@Test 
+    /**
+     * Test that relative paths with be resolved correctly.
+     */
+    @Test
     public void testExpandPath() {
-		// Test paths starting with "." and containing ".."
+        // Test paths starting with "." and containing ".."
         String path = "./bin/../src/resources";
-        Assert.assertEquals("correct_path_1", FileUtility.getWorkingDirectory() + "/src/resources", FileUtility.expandPath(path));
+        Assert.assertEquals("correct_path_1", FileUtility.getWorkingDirectory()
+                + "/src/resources", FileUtility.expandPath(path));
         // Test paths with multiple ".."
         path = "bin/../bin/../src/resources";
-        Assert.assertEquals("correct_path_2", FileUtility.getWorkingDirectory() + "/src/resources", FileUtility.expandPath(path));
+        Assert.assertEquals("correct_path_2", FileUtility.getWorkingDirectory()
+                + "/src/resources", FileUtility.expandPath(path));
         // Test Unix home tilde.
         path = "~";
-        Assert.assertEquals("correct_path_3", FileUtility.getUserHome(), FileUtility.expandPath(path)); 
+        Assert.assertEquals("correct_path_3", FileUtility.getUserHome(),
+                FileUtility.expandPath(path));
         // Test path with multiple consecutive forward slash.
         path = "./src/resources/////////////////";
-        Assert.assertEquals("correct_path_4", FileUtility.getWorkingDirectory() + "/src/resources", FileUtility.expandPath(path)); 
-        // Test path with multiple consecutive forward slash, followed by multiple "..".        
+        Assert.assertEquals("correct_path_4", FileUtility.getWorkingDirectory()
+                + "/src/resources", FileUtility.expandPath(path));
+        // Test path with multiple consecutive forward slash, followed by
+        // multiple "..".
         path = "./src/resources/////////////////../..";
-        Assert.assertEquals("correct_path_5", FileUtility.getWorkingDirectory(), FileUtility.expandPath(path));
+        Assert.assertEquals("correct_path_5",
+                FileUtility.getWorkingDirectory(), FileUtility.expandPath(path));
         // Test path with $HOME.
         path = "$HOME";
-        Assert.assertEquals("correct_path_6", FileUtility.getUserHome(), FileUtility.expandPath(path)); 
+        Assert.assertEquals("correct_path_6", FileUtility.getUserHome(),
+                FileUtility.expandPath(path));
     }
 }

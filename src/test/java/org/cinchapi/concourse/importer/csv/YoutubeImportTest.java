@@ -28,7 +28,7 @@ package org.cinchapi.concourse.importer.csv;
  * 
  * @author jnelson
  */
-public class YoutubeImportTest extends CsvImportBaseTest{
+public class YoutubeImportTest extends CsvImportBaseTest {
 
     @Override
     protected String getImportFile() {
