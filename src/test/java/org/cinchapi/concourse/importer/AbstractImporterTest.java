@@ -23,15 +23,11 @@
  */
 package org.cinchapi.concourse.importer;
 
-
 /**
  * Unit tests for {@link AbstractImporter}.
  * 
  * @author jnelson
  */
 public class AbstractImporterTest {
-
-
-  
 
 }

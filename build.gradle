@@ -12,7 +12,7 @@ dependencies {
     compile ('org.cinchapi:concourse-config:1.0.4'){
     	exclude group: 'org.cinchapi', module:'concourse'
     }
-    compile ('org.cinchapi:concourse-cli:1.1.0'){
+    compile ('org.cinchapi:concourse-cli:1.1.3'){
     	exclude group: 'org.cinchapi', module:'concourse'
     }
     compile 'com.google.guava:guava:15.0'

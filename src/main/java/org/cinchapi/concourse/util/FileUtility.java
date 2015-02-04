@@ -27,31 +27,30 @@ package org.cinchapi.concourse.util;
 import java.nio.file.FileSystems;
 import java.nio.file.Path;
 
- 
 /**
  * Simple Utility providing tools for working with the file system and paths.
  * 
  * @author hmitchell
  */
 public class FileUtility {
- 
+
     /**
      * The user's home directory, which is used to expand path names with "~"
      * (tilde).
      */
     private static String USER_HOME = System.getProperty("user.home");
- 
+
     /**
      * The working directory from which the current JVM process was launched.
      */
     private static String WORKING_DIRECTORY = System.getProperty("user.dir");
- 
+
     /**
      * The base path that is used to resolve and normalize other relative paths.
      */
     private static Path BASE_PATH = FileSystems.getDefault().getPath(
             WORKING_DIRECTORY);
- 
+
     /**
      * Expand the given {@code path} so that it contains completely normalized
      * components (e.g. ".", "..", and "~" are resolved to the correct absolute
@@ -65,29 +64,32 @@ public class FileUtility {
         path = path.replaceAll("\\$HOME", USER_HOME);
         return BASE_PATH.resolve(path).normalize().toString();
     }
-    
+
     /**
-     * Returns the value of {@link USER_HOME} directory.
-     * @return
+     * Returns the value of {@link #USER_HOME} directory.
+     * 
+     * @return the string value of the user's home directory.
      */
-    public static String getUserHome (){
-    	return USER_HOME;
+    public static String getUserHome() {
+        return USER_HOME;
     }
-    
+
     /**
-     * Returns the value of {@link BASE_PATH} directory.
-     * @return
+     * Returns the value of {@link #BASE_PATH} directory.
+     * 
+     * @return the string value of the base path.
      */
-    public static Path getBasePath(){
-    	return BASE_PATH;
+    public static Path getBasePath() {
+        return BASE_PATH;
     }
-    
+
     /**
-     * Returns the value of {@link WORKING_DIRECTORY} directory.
-     * @return
+     * Returns the value of {@link #WORKING_DIRECTORY} directory.
+     * 
+     * @return the string value of the current working directory.
      */
-    public static String getWorkingDirectory (){
-    	return WORKING_DIRECTORY;
+    public static String getWorkingDirectory() {
+        return WORKING_DIRECTORY;
     }
-    
+
 }

@@ -34,16 +34,24 @@ public class GeneralCsvImportCli extends FileLineImportCli {
 
     /**
      * Construct a new instance.
+     * 
      * @param args
      */
     public GeneralCsvImportCli(String... args) {
         super(args);
     }
 
+    /**
+     * {@link GeneralCsvImporter} for Current CLI.
+     */
     @Override
-    protected GeneralCsvImporter importer() {
-        return GeneralCsvImporter.withConnectionInfo(options.host, options.port,
-                options.username, options.password, options.environment);
+    protected final GeneralCsvImporter importer() {
+        if(getConcourse() != null) {
+            return GeneralCsvImporter.withConcourse(getConcourse());
+        }
+        else {
+            return null;
+        }
     }
 
 }

@@ -87,6 +87,8 @@ public abstract class AbstractImportCli extends CommandLineInterface {
      */
     protected AbstractImportCli(ImportOptions options, String[] args) {
         super(options, args);
+        setLoginAttemptsRemaining(3);
+        connectToConcourse();
     }
 
     /**

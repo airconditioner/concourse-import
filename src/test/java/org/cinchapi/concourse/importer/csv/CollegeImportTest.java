@@ -23,17 +23,16 @@
  */
 package org.cinchapi.concourse.importer.csv;
 
-
 /**
  * 
  * 
  * @author jnelson
  */
-public class CollegeImportTest extends CsvImportBaseTest{
+public class CollegeImportTest extends CsvImportBaseTest {
 
     @Override
     protected String getImportFile() {
         return "college.csv";
-    }   
+    }
 
 }
