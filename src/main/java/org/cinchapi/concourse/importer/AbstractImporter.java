@@ -131,7 +131,7 @@ public abstract class AbstractImporter implements Importer {
     /**
      * The connection to Concourse.
      */
-    private final Concourse concourse;
+    protected final Concourse concourse;
 
     /**
      * Construct a new instance.
