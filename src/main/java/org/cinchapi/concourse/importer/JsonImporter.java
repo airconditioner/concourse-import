@@ -37,8 +37,8 @@ import com.google.common.base.Throwables;
 /**
  * <p>
  * An {@link Importer} that can handle files in Json syntax. It is assumed in
- * this Json format that single quotes are not accepted for enclosing keys or
- * values, but they can be used as characters in a string.
+ * this Json format that if it contains multiple objects, they are enclosed in
+ * a list or an array.
  * </p>
  * 
  * @author hyin
