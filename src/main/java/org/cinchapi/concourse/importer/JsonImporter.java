@@ -56,8 +56,8 @@ public class JsonImporter extends AbstractImporter {
 
     @Override
     /**
-     *  Import the Json objects by parsing each Json object in
-     *  the file and calling the Concourse insert method on it.
+     *  Import the Json objects by reading the file contents
+     *  into a String and calling concourse.insert on it
      * 
      *  @param file
      *  @param resolveKey
@@ -68,40 +68,16 @@ public class JsonImporter extends AbstractImporter {
         try {
             FileReader fr = new FileReader(FileUtility.expandPath(file));
             BufferedReader reader = new BufferedReader(fr);
-
+            
             StringBuilder jsonObj = new StringBuilder();
 
-            // Boolean tags to indicate start of
-            // Json object and String
-            boolean start = false;
-            boolean quote = false;
-            char doubleQuote = '\"';
-            
-            int c;
-            while ((c = reader.read()) != -1) {
-                c = (char) c;
-                if (c == doubleQuote && start == true) {
-                    quote = !quote;
-                    jsonObj.append(c);
-                }
-                // Brackets in double quotes should count as 
-                // character in String, not start/end of object
-                else if (c == '{' && start == false && !quote) {
-                    start = true;
-                    jsonObj.append(c);
-                } 
-                else if (c == '}' && start == true && !quote) {
-                    start = false;
-                    jsonObj.append(c);
-                    concourse.insert((jsonObj.toString()));
-                    jsonObj = new StringBuilder();
-                } 
-                else if (start == true) {
-                    jsonObj.append(c);
-                }
+            String line;
+            while ((line = reader.readLine()) != null) {
+                jsonObj.append(line);
+                jsonObj.append(System.lineSeparator());
             }
+            concourse.insert(jsonObj.toString());
             reader.close();
-            
         }
         catch (Exception e) {
             throw Throwables.propagate(e);
